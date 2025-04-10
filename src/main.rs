@@ -32,8 +32,6 @@ enum TokenKind {
     Symbol,
     LParen,
     RParen,
-    Module,
-    Lambda,
     Atom,
 }
 
@@ -57,13 +55,11 @@ impl fmt::Display for Token {
             "{MAGENTA}{}: {YELLOW}{}{NORMAL}",
             self.range,
             match self.kind {
-                TokenKind::Module => format!("Module: {}", self.value),
                 TokenKind::Text => format!("String: \"{}\"", self.value),
                 TokenKind::Number => format!("Number: {}", self.value),
                 TokenKind::Symbol => format!("Symbol: {}", self.value),
                 TokenKind::LParen => format!("Left Parenthesis: {}", self.value),
                 TokenKind::RParen => format!("Right Parenthesis: {}", self.value),
-                TokenKind::Lambda => format!("Lambda: {}", self.value),
                 TokenKind::Atom => format!("Atom: {}", self.value),
             }
         )
@@ -163,15 +159,9 @@ impl Environment {
     }
 }
 
-fn process_file(
-    filename: &str,
-    env: &mut Environment,
-    script: bool,
-    print_tokens: bool,
-    print_ast: bool,
-) {
+fn process_file(filename: &str, env: &mut Environment, print_tokens: bool, print_ast: bool) {
     let mut source = fs::read_to_string(filename).expect("Unable to read file");
-    if script && source.starts_with("#!") {
+    if source.starts_with("#!") {
         if let Some(new_line_index) = source.find('\n') {
             source = source[new_line_index + 1..].to_string();
         }
@@ -204,7 +194,6 @@ fn main() {
         .collect();
 
     let mut repl = false;
-    let mut script = false;
     let mut print_tokens = false;
     let mut print_ast = false;
     let mut command = false;
@@ -214,8 +203,6 @@ fn main() {
             repl = true;
         } else if flag == "--command" || flag == "-c" {
             command = true;
-        } else if flag == "--script" || flag == "-s" {
-            script = true;
         } else if flag == "--print-tokens" || flag == "-t" {
             print_tokens = true;
         } else if flag == "--print-ast" || flag == "-a" {
@@ -227,7 +214,6 @@ fn main() {
             println!("Usage: lich [options] [file]");
             println!("Options:");
             println!("  -r, --repl             Start the REPL");
-            println!("  -s, --script           Run the script");
             println!("  -t, --print-tokens     Print tokens");
             println!("  -a, --print-ast        Print AST");
             println!("  -c, --command          Execute a command");
@@ -276,7 +262,7 @@ fn main() {
         }
     } else {
         for arg in positional_args {
-            process_file(&arg, &mut env, script, print_tokens, print_ast);
+            process_file(&arg, &mut env, print_tokens, print_ast);
         }
     }
 }

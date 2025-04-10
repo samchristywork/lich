@@ -1,6 +1,5 @@
 use crate::Environment;
 use crate::Node;
-use crate::TokenKind;
 use crate::Value;
 use crate::intrinsic;
 
@@ -101,7 +100,7 @@ pub fn handle_symbol(function: &Node, args: &[Node], env: &mut Environment) -> N
         "def!" => intrinsic::fn_def(args, env),
         "func!" => intrinsic::fn_func(args, env),
         "set" => intrinsic::fn_set(args, env),
-        "lambda" => intrinsic::fn_lambda(args, env), // TODO: Is ! needed?
+        "lambda" => intrinsic::fn_lambda(args), // TODO: Is ! needed?
 
         // Higher-order functions
         "map" => intrinsic::fn_map(args, env),

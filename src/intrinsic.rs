@@ -466,7 +466,7 @@ pub fn fn_empty_string(args: &[Node], env: &mut Environment) -> Node {
 }
 
 // TODO: This function should take an optional argument
-pub fn fn_print_env(args: &[Node], env: &mut Environment) -> Node {
+pub fn fn_print_env(_: &[Node], env: &mut Environment) -> Node {
     println!("Environment:");
     let red = "\x1b[31m";
     let normal = "\x1b[0m";
@@ -755,7 +755,7 @@ pub fn fn_filter(args: &[Node], env: &mut Environment) -> Node {
     }
 }
 
-pub fn fn_true(args: &[Node]) -> Node {
+pub fn fn_true(_: &[Node]) -> Node {
     Node {
         token: Token {
             value: "true".to_string(),
@@ -767,7 +767,7 @@ pub fn fn_true(args: &[Node]) -> Node {
     }
 }
 
-pub fn fn_false(args: &[Node]) -> Node {
+pub fn fn_false(_: &[Node]) -> Node {
     Node {
         token: Token {
             value: "false".to_string(),
@@ -904,7 +904,7 @@ pub fn fn_reverse(args: &[Node], env: &mut Environment) -> Node {
 pub fn fn_load(args: &[Node], env: &mut Environment) -> Node {
     args.iter().for_each(|arg| {
         if let Value::Text(filename) = evaluate_node(arg, env).value {
-            process_file(&filename, env, true, false, false);
+            process_file(&filename, env, false, false);
         } else {
             panic!("Invalid argument for load function");
         }
@@ -987,7 +987,7 @@ pub fn fn_time_ms(args: &[Node], env: &mut Environment) -> Node {
     }
 }
 
-pub fn fn_lambda(args: &[Node], env: &mut Environment) -> Node {
+pub fn fn_lambda(args: &[Node]) -> Node {
     expect_n_args!(args, 2);
 
     let params = args[0].clone();

@@ -1,5 +1,4 @@
 use crate::Node;
-use crate::Range;
 use crate::Token;
 use crate::TokenKind;
 use crate::Value;
@@ -48,16 +47,6 @@ pub fn parse_tokens(tokens: &[Token]) -> Node {
             TokenKind::Atom => current_node.children.push(Node {
                 token: token.clone(),
                 value: Value::Atom(token.value.clone()),
-                children: Vec::new(),
-            }),
-            TokenKind::Module => current_node.children.push(Node {
-                token: token.clone(),
-                value: Value::LParen(),
-                children: Vec::new(),
-            }),
-            TokenKind::Lambda => current_node.children.push(Node {
-                token: token.clone(),
-                value: Value::Lambda(),
                 children: Vec::new(),
             }),
         }
