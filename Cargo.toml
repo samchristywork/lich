@@ -1,0 +1,7 @@
+[package]
+name = "lich"
+version = "2025.4.10"
+edition = "2024"
+
+[dependencies]
+url = "2.5.4"
