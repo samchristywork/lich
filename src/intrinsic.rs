@@ -146,9 +146,7 @@ pub fn fn_dec(args: &[Node], env: &mut Environment) -> Node {
 }
 
 pub fn fn_max(args: &[Node], env: &mut Environment) -> Node {
-    if args.is_empty() {
-        panic!("No arguments provided for max function");
-    }
+    assert!(!args.is_empty(), "No arguments provided for max function");
 
     let max_value = evaluate_args!(args, env)
         .iter()
@@ -170,9 +168,7 @@ pub fn fn_max(args: &[Node], env: &mut Environment) -> Node {
 }
 
 pub fn fn_min(args: &[Node], env: &mut Environment) -> Node {
-    if args.is_empty() {
-        panic!("No arguments provided for min function");
-    }
+    assert!(!args.is_empty(), "No arguments provided for min function");
 
     let min_value = evaluate_args!(args, env)
         .iter()
@@ -196,54 +192,54 @@ pub fn fn_min(args: &[Node], env: &mut Environment) -> Node {
 pub fn fn_is_text(args: &[Node], env: &mut Environment) -> Node {
     expect_n_args!(args, 1);
     if let Value::Text(_) = evaluate_node(&args[0], env).value {
-        return fn_true(&[]);
+        fn_true(&[])
     } else {
-        return fn_false(&[]);
+        fn_false(&[])
     }
 }
 
 pub fn fn_is_number(args: &[Node], env: &mut Environment) -> Node {
     expect_n_args!(args, 1);
     if let Value::Number(_) = evaluate_node(&args[0], env).value {
-        return fn_true(&[]);
+        fn_true(&[])
     } else {
-        return fn_false(&[]);
+        fn_false(&[])
     }
 }
 
 pub fn fn_is_symbol(args: &[Node], env: &mut Environment) -> Node {
     expect_n_args!(args, 1);
     if let Value::Symbol(_) = evaluate_node(&args[0], env).value {
-        return fn_true(&[]);
+        fn_true(&[])
     } else {
-        return fn_false(&[]);
+        fn_false(&[])
     }
 }
 
 pub fn fn_is_lparen(args: &[Node], env: &mut Environment) -> Node {
     expect_n_args!(args, 1);
-    if let Value::LParen() = evaluate_node(&args[0], env).value {
-        return fn_true(&[]);
+    if evaluate_node(&args[0], env).value == Value::LParen() {
+        fn_true(&[])
     } else {
-        return fn_false(&[]);
+        fn_false(&[])
     }
 }
 
 pub fn fn_is_lambda(args: &[Node], env: &mut Environment) -> Node {
     expect_n_args!(args, 1);
-    if let Value::Lambda() = evaluate_node(&args[0], env).value {
-        return fn_true(&[]);
+    if evaluate_node(&args[0], env).value == Value::Lambda() {
+        fn_true(&[])
     } else {
-        return fn_false(&[]);
+        fn_false(&[])
     }
 }
 
 pub fn fn_is_atom(args: &[Node], env: &mut Environment) -> Node {
     expect_n_args!(args, 1);
     if let Value::Atom(_) = evaluate_node(&args[0], env).value {
-        return fn_true(&[]);
+        fn_true(&[])
     } else {
-        return fn_false(&[]);
+        fn_false(&[])
     }
 }
 
@@ -374,7 +370,7 @@ pub fn fn_join(args: &[Node], env: &mut Environment) -> Node {
     expect_n_args!(args, 2);
 
     if let Value::Text(separator) = evaluate_node(&args[0], env).value {
-        if let Value::LParen() = &args[1].value {
+        if matches!(&args[1].value, Value::LParen()) {
             let mut elements = Vec::new();
             for child in &args[1].children {
                 if let Value::Text(text) = evaluate_node(child, env).value {
@@ -443,7 +439,7 @@ pub fn fn_strlen(args: &[Node], env: &mut Environment) -> Node {
     if let Value::Text(string) = evaluate_node(&args[0], env).value {
         return Node {
             token: args[0].token.clone(),
-            value: Value::Number(string.len() as i64),
+            value: Value::Number(string.len().try_into().expect("Invalid length")),
             children: Vec::new(),
         };
     }
@@ -457,16 +453,15 @@ pub fn fn_empty_string(args: &[Node], env: &mut Environment) -> Node {
     if let Value::Text(string) = evaluate_node(&args[0], env).value {
         if string.is_empty() {
             return fn_true(&[]);
-        } else {
-            return fn_false(&[]);
         }
+        return fn_false(&[]);
     }
 
     panic!("Invalid argument for empty_string function");
 }
 
 // TODO: This function should take an optional argument
-pub fn fn_print_env(_: &[Node], env: &mut Environment) -> Node {
+pub fn fn_print_env(_: &[Node], env: &Environment) -> Node {
     println!("Environment:");
     let red = "\x1b[31m";
     let normal = "\x1b[0m";
@@ -517,9 +512,8 @@ pub fn fn_if(args: &[Node], env: &mut Environment) -> Node {
     if let Value::Symbol(ref s) = evaluate_node(&args[0], env).value {
         if s == "true" {
             return evaluate_node(&args[1], env);
-        } else {
-            return evaluate_node(&args[2], env);
         }
+        return evaluate_node(&args[2], env);
     }
 
     panic!("Invalid argument for if function");
@@ -548,9 +542,8 @@ pub fn fn_less_than(args: &[Node], env: &mut Environment) -> Node {
         if let Value::Number(b) = evaluate_node(&args[1], env).value {
             if a < b {
                 return fn_true(&[]);
-            } else {
-                return fn_false(&[]);
             }
+            return fn_false(&[]);
         }
     }
 
@@ -564,9 +557,8 @@ pub fn fn_greater_than(args: &[Node], env: &mut Environment) -> Node {
         if let Value::Number(b) = evaluate_node(&args[1], env).value {
             if a > b {
                 return fn_true(&[]);
-            } else {
-                return fn_false(&[]);
             }
+            return fn_false(&[]);
         }
     }
 
@@ -578,7 +570,7 @@ pub fn fn_def(args: &[Node], env: &mut Environment) -> Node {
 
     if let Value::Symbol(name) = evaluate_node(&args[0], env).value {
         let value = evaluate_node(&args[1], env);
-        env.set(name.clone(), value);
+        env.set(name, value);
         fn_true(&[])
     } else {
         panic!("Invalid argument for def function");
@@ -629,7 +621,7 @@ pub fn fn_func(args: &[Node], env: &mut Environment) -> Node {
             children,
         };
 
-        env.set(name.clone(), lambda);
+        env.set(name, lambda);
 
         return fn_true(&[]);
     }
@@ -645,7 +637,7 @@ pub fn fn_set(args: &[Node], env: &mut Environment) -> Node {
         let body = &args[2];
 
         let mut new_env = env.clone();
-        new_env.set(name.clone(), value);
+        new_env.set(name, value);
         return evaluate_node(body, &mut new_env);
     }
 
@@ -714,13 +706,13 @@ pub fn fn_filter(args: &[Node], env: &mut Environment) -> Node {
     if env.get(&function.token.value.clone()).is_some() {
         // Not intrinsic
         for item in evaluate_node(list, env).children {
-            let lambda = handle_symbol(&function, &item.children, env);
+            let lambda = handle_symbol(function, &item.children, env);
 
             let lambda_params = &lambda.children[0];
             let lambda_body = &lambda.children[1..];
 
             let mut new_env = env.clone();
-            for param in lambda_params.children.iter() {
+            for param in &lambda_params.children {
                 new_env.set(param.token.value.clone(), item.clone());
             }
 
@@ -785,9 +777,8 @@ pub fn fn_is_even(args: &[Node], env: &mut Environment) -> Node {
     if let Value::Number(n) = evaluate_node(&args[0], env).value {
         if n % 2 == 0 {
             return fn_true(&[]);
-        } else {
-            return fn_false(&[]);
         }
+        return fn_false(&[]);
     }
 
     panic!("Invalid argument for is_even function");
@@ -799,9 +790,8 @@ pub fn fn_is_odd(args: &[Node], env: &mut Environment) -> Node {
     if let Value::Number(n) = evaluate_node(&args[0], env).value {
         if n % 2 != 0 {
             return fn_true(&[]);
-        } else {
-            return fn_false(&[]);
         }
+        return fn_false(&[]);
     }
 
     panic!("Invalid argument for is_odd function");
@@ -811,7 +801,7 @@ pub fn fn_get_environment_variable(args: &[Node], env: &mut Environment) -> Node
     expect_n_args!(args, 1);
 
     if let Value::Text(var_name) = evaluate_node(&args[0], env).value {
-        let value = std::env::var(var_name).unwrap_or_else(|_| String::from(""));
+        let value = std::env::var(var_name).unwrap_or_else(|_| String::new());
         return Node {
             token: args[0].token.clone(),
             value: Value::Text(value),
@@ -826,7 +816,7 @@ pub fn fn_head(args: &[Node], env: &mut Environment) -> Node {
     expect_n_args!(args, 1);
 
     let n = evaluate_node(&args[0], env);
-    if let Value::LParen() = n.value {
+    if n.value == Value::LParen() {
         if args[0].children.is_empty() {
             panic!("Empty list");
         } else {
@@ -841,11 +831,11 @@ pub fn fn_last(args: &[Node], env: &mut Environment) -> Node {
     expect_n_args!(args, 1);
 
     let n = evaluate_node(&args[0], env);
-    if let Value::LParen() = n.value {
+    if n.value == Value::LParen() {
         if args[0].children.is_empty() {
             panic!("Empty list");
         } else {
-            return n.children.last().unwrap().clone();
+            return n.children.last().expect("No last element").clone();
         }
     }
 
@@ -856,7 +846,7 @@ pub fn fn_tail(args: &[Node], env: &mut Environment) -> Node {
     expect_n_args!(args, 1);
 
     let n = evaluate_node(&args[0], env);
-    if let Value::LParen() = n.value {
+    if n.value == Value::LParen() {
         if args[0].children.is_empty() {
             panic!("Empty list");
         } else {
@@ -875,10 +865,10 @@ pub fn fn_length(args: &[Node], env: &mut Environment) -> Node {
     expect_n_args!(args, 1);
 
     let n = evaluate_node(&args[0], env);
-    if let Value::LParen() = n.value {
+    if n.value == Value::LParen() {
         return Node {
             token: args[0].token.clone(),
-            value: Value::Number(n.children.len() as i64),
+            value: Value::Number(n.children.len().try_into().expect("Invalid length")),
             children: Vec::new(),
         };
     }
@@ -890,7 +880,7 @@ pub fn fn_reverse(args: &[Node], env: &mut Environment) -> Node {
     expect_n_args!(args, 1);
 
     let n = evaluate_node(&args[0], env);
-    if let Value::LParen() = n.value {
+    if n.value == Value::LParen() {
         return Node {
             token: args[0].token.clone(),
             value: Value::LParen(),
@@ -902,13 +892,13 @@ pub fn fn_reverse(args: &[Node], env: &mut Environment) -> Node {
 }
 
 pub fn fn_load(args: &[Node], env: &mut Environment) -> Node {
-    args.iter().for_each(|arg| {
+    for arg in args {
         if let Value::Text(filename) = evaluate_node(arg, env).value {
             process_file(&filename, env, false, false);
         } else {
             panic!("Invalid argument for load function");
         }
-    });
+    }
 
     fn_true(&[])
 }
@@ -976,13 +966,19 @@ pub fn fn_sleep_ms(args: &[Node], env: &mut Environment) -> Node {
 
 pub fn fn_time_ms(args: &[Node], env: &mut Environment) -> Node {
     let start = std::time::Instant::now();
-    args.iter().for_each(|arg| {
+    for arg in args {
         evaluate_node(arg, env);
-    });
+    }
 
     Node {
         token: args[0].token.clone(),
-        value: Value::Number(start.elapsed().as_millis() as i64),
+        value: Value::Number(
+            start
+                .elapsed()
+                .as_millis()
+                .try_into()
+                .expect("Invalid duration"),
+        ),
         children: Vec::new(),
     }
 }
@@ -1008,7 +1004,7 @@ pub fn fn_pipeline(args: &[Node], env: &mut Environment) -> Node {
         .skip(1)
         .fold(&mut root, |current, next_node| {
             current.children.push(next_node.clone());
-            current.children.last_mut().unwrap()
+            current.children.last_mut().expect("No last element")
         });
 
     evaluate_node(&root, env)
@@ -1019,7 +1015,7 @@ pub fn fn_reverse_pipeline(args: &[Node], env: &mut Environment) -> Node {
 
     args.iter().skip(1).fold(&mut root, |current, next_node| {
         current.children.push(next_node.clone());
-        current.children.last_mut().unwrap()
+        current.children.last_mut().expect("No last element")
     });
 
     evaluate_node(&root, env)
@@ -1044,9 +1040,7 @@ pub fn fn_exit(args: &[Node], env: &mut Environment) -> Node {
 }
 
 pub fn fn_system(args: &[Node], env: &mut Environment) -> Node {
-    if args.is_empty() {
-        panic!("No command provided");
-    }
+    assert!(!args.is_empty(), "No command provided");
 
     if let Value::Text(command) = evaluate_node(&args[0], env).value {
         let arguments = if args.len() > 1 {
@@ -1100,7 +1094,7 @@ pub fn fn_system(args: &[Node], env: &mut Environment) -> Node {
             children: vec![
                 Node {
                     token: args[0].token.clone(),
-                    value: Value::Number(output.status.code().unwrap_or(-1) as i64),
+                    value: Value::Number(i64::from(output.status.code().unwrap_or(-1))),
                     children: Vec::new(),
                 },
                 Node {
@@ -1123,7 +1117,7 @@ pub fn fn_system(args: &[Node], env: &mut Environment) -> Node {
 pub fn fn_contains(args: &[Node], env: &mut Environment) -> Node {
     expect_n_args!(args, 2);
 
-    if let Value::LParen() = evaluate_node(&args[1], env).value {
+    if evaluate_node(&args[1], env).value == Value::LParen() {
         for item in evaluate_node(&args[1], env).children {
             if test_equal(&item, &args[0]) {
                 return fn_true(&[]);

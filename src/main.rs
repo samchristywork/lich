@@ -91,13 +91,12 @@ fn print_tree(node: &Node, depth: usize) -> String {
         return_value.push_str("  ");
     }
     return_value.push_str(&match value {
-        Value::Text(ref s) => format!("\"{}\"", s),
-        Value::Number(ref n) => format!("{}", n),
-        Value::Symbol(ref s) => format!("{}", s),
-        Value::LParen() => format!("("),
-        Value::Lambda() => format!("lambda"),
-        Value::Atom(ref s) => format!("{}", s),
-        _ => format!("{:?}", value),
+        Value::Text(ref s) => format!("\"{s}\""),
+        Value::Number(ref n) => format!("{n}"),
+        Value::LParen() => "(".to_string(),
+        Value::Lambda() => "lambda".to_string(),
+        Value::Symbol(ref s) | Value::Atom(ref s) => s.to_string(),
+        Value::Module() => "module".to_string(),
     });
 
     return_value.push('\n');
@@ -126,13 +125,11 @@ impl Node {
                 }
                 result.trim_end().to_string()
             }
-            Value::Text(ref s) => s.clone(),
-            Value::Number(ref n) => n.to_string(),
-            Value::Symbol(ref s) => s.clone(),
             Value::Lambda() => "lambda".to_string(),
-            Value::Atom(ref s) => s.clone(),
-            _ => {
-                panic!("Not Implemented");
+            Value::Number(ref n) => n.to_string(),
+            Value::Text(ref s) | Value::Symbol(ref s) | Value::Atom(ref s) => s.clone(),
+            Value::Module() => {
+                panic!("Module should not be printed as a string")
             }
         }
     }
@@ -208,7 +205,7 @@ fn main() {
         } else if flag == "--print-ast" || flag == "-a" {
             print_ast = true;
         } else if flag == "--version" || flag == "-v" {
-            println!("Lich version 2025.4.1");
+            println!("Lich version {}", env!("CARGO_PKG_VERSION"));
             return;
         } else if flag == "--help" || flag == "-h" {
             println!("Usage: lich [options] [file]");

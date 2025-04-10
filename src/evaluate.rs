@@ -7,7 +7,7 @@ const VERBOSE: bool = false;
 
 pub fn evaluate_node(node: &Node, env: &mut Environment) -> Node {
     if VERBOSE {
-        println!("Evaluating node: {}", node);
+        println!("Evaluating node: {node}");
     }
 
     match &node.value {
@@ -16,7 +16,7 @@ pub fn evaluate_node(node: &Node, env: &mut Environment) -> Node {
             apply_function(&function, &node.children[1..], env)
         }
         Value::Symbol(s) => env
-            .get(&s)
+            .get(s)
             .map_or_else(|| node.clone(), std::clone::Clone::clone),
         Value::Module() => {
             let mut result = node.clone();
@@ -31,12 +31,11 @@ pub fn evaluate_node(node: &Node, env: &mut Environment) -> Node {
 
 pub fn handle_symbol(function: &Node, args: &[Node], env: &mut Environment) -> Node {
     if VERBOSE {
-        println!("Handling symbol: {}", function);
+        println!("Handling symbol: {function}");
     }
 
-    let name = match &function.value {
-        Value::Symbol(s) => s,
-        _ => panic!("Expected a symbol, found: {:?}", function.value),
+    let Value::Symbol(name) = &function.value else {
+        panic!("Expected a symbol, found: {:?}", function.value);
     };
 
     match name.as_str() {
@@ -126,8 +125,8 @@ pub fn handle_symbol(function: &Node, args: &[Node], env: &mut Environment) -> N
         "time-ms" => intrinsic::fn_time_ms(args, env),
         "system!" => intrinsic::fn_system(args, env),
         "contains" => intrinsic::fn_contains(args, env),
-        _ => env.get(&name).map_or_else(
-            || panic!("Unknown function: {}", name),
+        _ => env.get(name).map_or_else(
+            || panic!("Unknown function: {name}"),
             std::clone::Clone::clone,
         ),
     }
@@ -135,9 +134,9 @@ pub fn handle_symbol(function: &Node, args: &[Node], env: &mut Environment) -> N
 
 fn apply_function(function: &Node, args: &[Node], env: &mut Environment) -> Node {
     if VERBOSE {
-        println!("Applying function: {}", function);
+        println!("Applying function: {function}");
         for arg in args {
-            println!("Argument: {}", arg);
+            println!("Argument: {arg}");
         }
     }
     match function.value {
