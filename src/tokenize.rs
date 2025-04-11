@@ -27,6 +27,41 @@ fn is_symbol_char(c: char) -> bool {
         || c == '~'
 }
 
+macro_rules! push_token {
+    ($tokens:expr, $value:expr, $kind:expr, $start:expr, $end:expr) => {
+        $tokens.push(Token {
+            value: $value.to_string(),
+            kind: $kind,
+            range: Range {
+                start: $start,
+                end: $end,
+            },
+        })
+    }
+}
+
+fn is_valid_number(value: &str) -> bool {
+    if value.is_empty() {
+        panic!("Empty string is not a valid number or symbol");
+    }
+
+    if value == "-" {
+        return false;
+    } else if value.len() == 1 {
+        return value.chars().next().unwrap().is_ascii_digit();
+    }
+
+    if value[0..1] == *"-" {
+        if value[1..].chars().all(|c| c.is_ascii_digit()) {
+            return true;
+        }
+    } else if value.chars().all(|c| c.is_ascii_digit()) {
+        return true;
+    }
+
+    false
+}
+
 pub fn tokenize(source: &str) -> Vec<Token> {
     let mut tokens = Vec::new();
     let mut chars = source.char_indices().peekable();
@@ -34,6 +69,8 @@ pub fn tokenize(source: &str) -> Vec<Token> {
     while let Some((start, c)) = chars.next() {
         let mut end = start;
         match c {
+            '(' => push_token!(tokens, "(", TokenKind::LParen, start, end),
+            ')' => push_token!(tokens, ")", TokenKind::RParen, start, end),
             c if c.is_whitespace() => {} // Skip whitespace
             ';' => {
                 while let Some(&(_, next_c)) = chars.peek() {
@@ -42,71 +79,6 @@ pub fn tokenize(source: &str) -> Vec<Token> {
                     }
                     chars.next();
                 }
-            }
-            '(' => {
-                tokens.push(Token {
-                    value: "(".to_string(),
-                    kind: TokenKind::LParen,
-                    range: Range { start, end },
-                });
-            }
-            ')' => {
-                tokens.push(Token {
-                    value: ")".to_string(),
-                    kind: TokenKind::RParen,
-                    range: Range { start, end },
-                });
-            }
-            c if c.is_ascii_digit() => {
-                let mut value = String::from(c);
-                while let Some(&(next_start, next_c)) = chars.peek() {
-                    if next_c.is_ascii_digit() {
-                        value.push(next_c);
-                        chars.next();
-                        end = next_start;
-                    } else {
-                        break;
-                    }
-                }
-                tokens.push(Token {
-                    value,
-                    kind: TokenKind::Number,
-                    range: Range { start, end },
-                });
-            }
-            ':' => {
-                let mut value = String::from(c);
-                while let Some(&(next_start, next_c)) = chars.peek() {
-                    if is_symbol_char(next_c) {
-                        value.push(next_c);
-                        chars.next();
-                        end = next_start;
-                    } else {
-                        break;
-                    }
-                }
-                tokens.push(Token {
-                    value,
-                    kind: TokenKind::Atom,
-                    range: Range { start, end },
-                });
-            }
-            c if is_symbol_char(c) => {
-                let mut value = String::from(c);
-                while let Some(&(next_start, next_c)) = chars.peek() {
-                    if is_symbol_char(next_c) {
-                        value.push(next_c);
-                        chars.next();
-                        end = next_start;
-                    } else {
-                        break;
-                    }
-                }
-                tokens.push(Token {
-                    value,
-                    kind: TokenKind::Symbol,
-                    range: Range { start, end },
-                });
             }
             '`' => {
                 let mut value = String::new();
@@ -119,11 +91,7 @@ pub fn tokenize(source: &str) -> Vec<Token> {
 
                     value.push(next_c);
                 }
-                tokens.push(Token {
-                    value,
-                    kind: TokenKind::Text,
-                    range: Range { start, end },
-                });
+                push_token!(tokens, value, TokenKind::Text, start, end);
             }
             '"' => {
                 let mut value = String::new();
@@ -136,11 +104,39 @@ pub fn tokenize(source: &str) -> Vec<Token> {
 
                     value.push(next_c);
                 }
-                tokens.push(Token {
-                    value,
-                    kind: TokenKind::Text,
-                    range: Range { start, end },
-                });
+                push_token!(tokens, value, TokenKind::Text, start, end);
+            }
+            ':' => {
+                let mut value = String::from(c);
+                while let Some(&(next_start, next_c)) = chars.peek() {
+                    if is_symbol_char(next_c) {
+                        value.push(next_c);
+                        chars.next();
+                        end = next_start;
+                    } else {
+                        break;
+                    }
+                }
+                push_token!(tokens, value, TokenKind::Atom, start, end);
+            }
+            c if is_symbol_char(c) => {
+                let mut value = String::from(c);
+                while let Some(&(next_start, next_c)) = chars.peek() {
+                    if is_symbol_char(next_c) {
+                        value.push(next_c);
+                        chars.next();
+                        end = next_start;
+                    } else {
+                        break;
+                    }
+                }
+
+                // Numbers are a strict subset of symbols, so we check for numbers first
+                if is_valid_number(&value) {
+                    push_token!(tokens, value, TokenKind::Number, start, end);
+                } else {
+                    push_token!(tokens, value, TokenKind::Symbol, start, end);
+                }
             }
             _ => panic!("Unexpected character: {c}"),
         }
