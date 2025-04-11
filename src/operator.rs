@@ -70,7 +70,7 @@ pub fn test_equal(a: &Node, b: &Node) -> bool {
         return false;
     }
 
-    if a.value == Value::LParen() {
+    if a.value == Value::List() {
         if a.children.len() != b.children.len() {
             return false;
         }

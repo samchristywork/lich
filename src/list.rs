@@ -10,7 +10,7 @@ pub fn fn_list(args: &[Node], env: &mut Environment) -> Node {
 
     Node {
         token: args[0].token.clone(),
-        value: Value::LParen(),
+        value: Value::List(),
         children: list,
     }
 }
@@ -19,7 +19,7 @@ pub fn fn_head(args: &[Node], env: &mut Environment) -> Node {
     expect_n_args!(args, 1);
 
     let n = evaluate_node(&args[0], env);
-    if n.value == Value::LParen() {
+    if n.value == Value::List() {
         if args[0].children.is_empty() {
             panic!("Empty list");
         } else {
@@ -34,7 +34,7 @@ pub fn fn_last(args: &[Node], env: &mut Environment) -> Node {
     expect_n_args!(args, 1);
 
     let n = evaluate_node(&args[0], env);
-    if n.value == Value::LParen() {
+    if n.value == Value::List() {
         if args[0].children.is_empty() {
             panic!("Empty list");
         } else {
@@ -49,13 +49,13 @@ pub fn fn_tail(args: &[Node], env: &mut Environment) -> Node {
     expect_n_args!(args, 1);
 
     let n = evaluate_node(&args[0], env);
-    if n.value == Value::LParen() {
+    if n.value == Value::List() {
         if args[0].children.is_empty() {
             panic!("Empty list");
         } else {
             return Node {
                 token: args[0].token.clone(),
-                value: Value::LParen(),
+                value: Value::List(),
                 children: n.children[1..].to_vec(),
             };
         }
@@ -68,7 +68,7 @@ pub fn fn_length(args: &[Node], env: &mut Environment) -> Node {
     expect_n_args!(args, 1);
 
     let n = evaluate_node(&args[0], env);
-    if n.value == Value::LParen() {
+    if n.value == Value::List() {
         return Node {
             token: args[0].token.clone(),
             value: Value::Number(n.children.len().try_into().expect("Invalid length")),
@@ -83,10 +83,10 @@ pub fn fn_reverse(args: &[Node], env: &mut Environment) -> Node {
     expect_n_args!(args, 1);
 
     let n = evaluate_node(&args[0], env);
-    if n.value == Value::LParen() {
+    if n.value == Value::List() {
         return Node {
             token: args[0].token.clone(),
-            value: Value::LParen(),
+            value: Value::List(),
             children: n.children.iter().rev().cloned().collect(),
         };
     }

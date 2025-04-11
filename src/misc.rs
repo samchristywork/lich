@@ -21,7 +21,7 @@ pub fn fn_map(args: &[Node], env: &mut Environment) -> Node {
         .iter()
         .map(|item| Node {
             token: args[0].token.clone(),
-            value: Value::LParen(),
+            value: Value::List(),
             children: vec![function.clone(), item.clone()],
         })
         .collect::<Vec<_>>()
@@ -31,7 +31,7 @@ pub fn fn_map(args: &[Node], env: &mut Environment) -> Node {
 
     Node {
         token: args[0].token.clone(),
-        value: Value::LParen(),
+        value: Value::List(),
         children,
     }
 }
@@ -69,7 +69,7 @@ pub fn fn_filter(args: &[Node], env: &mut Environment) -> Node {
             let ret = evaluate_node(
                 &Node {
                     token: function.token.clone(),
-                    value: Value::LParen(),
+                    value: Value::List(),
                     children: vec![function.clone(), item.clone()],
                 },
                 env,
@@ -82,7 +82,7 @@ pub fn fn_filter(args: &[Node], env: &mut Environment) -> Node {
 
     Node {
         token: args[0].token.clone(),
-        value: Value::LParen(),
+        value: Value::List(),
         children,
     }
 }
@@ -243,7 +243,7 @@ pub fn fn_system(args: &[Node], env: &mut Environment) -> Node {
         } else {
             Node {
                 token: args[0].token.clone(),
-                value: Value::LParen(),
+                value: Value::List(),
                 children: Vec::new(),
             }
         };
@@ -285,7 +285,7 @@ pub fn fn_system(args: &[Node], env: &mut Environment) -> Node {
 
         return Node {
             token: args[0].token.clone(),
-            value: Value::LParen(),
+            value: Value::List(),
             children: vec![
                 Node {
                     token: args[0].token.clone(),
@@ -313,7 +313,7 @@ use crate::operator::test_equal;
 pub fn fn_contains(args: &[Node], env: &mut Environment) -> Node {
     expect_n_args!(args, 2);
 
-    if evaluate_node(&args[1], env).value == Value::LParen() {
+    if evaluate_node(&args[1], env).value == Value::List() {
         for item in evaluate_node(&args[1], env).children {
             if test_equal(&item, &args[0]) {
                 return fn_true(&[]);

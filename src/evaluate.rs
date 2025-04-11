@@ -32,7 +32,7 @@ macro_rules! expect_n_args {
 
 pub fn evaluate_node(node: &Node, env: &mut Environment) -> Node {
     match &node.value {
-        Value::LParen() => {
+        Value::List() => {
             let function = evaluate_node(&node.children[0], env);
             apply_function(&function, &node.children[1..], env)
         }
@@ -169,7 +169,7 @@ fn apply_function(function: &Node, args: &[Node], env: &mut Environment) -> Node
 
             return_value
         }
-        Value::LParen() => {
+        Value::List() => {
             apply_function(&function.children[0].clone(), &function.children[1..], env)
         }
         _ => panic!("Invalid function application: {:?}", function.value),

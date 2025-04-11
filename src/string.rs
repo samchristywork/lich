@@ -10,7 +10,7 @@ pub fn fn_join(args: &[Node], env: &mut Environment) -> Node {
     expect_n_args!(args, 2);
 
     if let Value::Text(separator) = evaluate_node(&args[0], env).value {
-        if matches!(&args[1].value, Value::LParen()) {
+        if matches!(&args[1].value, Value::List()) {
             let mut elements = Vec::new();
             for child in &args[1].children {
                 if let Value::Text(text) = evaluate_node(child, env).value {
@@ -44,7 +44,7 @@ pub fn fn_split(args: &[Node], env: &mut Environment) -> Node {
 
             return Node {
                 token: args[0].token.clone(),
-                value: Value::LParen(),
+                value: Value::List(),
                 children: parts.collect(),
             };
         }
@@ -65,7 +65,7 @@ pub fn fn_lines(args: &[Node], env: &mut Environment) -> Node {
 
         return Node {
             token: args[0].token.clone(),
-            value: Value::LParen(),
+            value: Value::List(),
             children: lines.collect(),
         };
     }

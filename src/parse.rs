@@ -17,7 +17,7 @@ pub fn parse_tokens(tokens: &[Token]) -> Node {
                 stack.push(current_node);
                 current_node = Node {
                     token: token.clone(),
-                    value: Value::LParen(),
+                    value: Value::List(),
                     children: Vec::new(),
                 };
             }

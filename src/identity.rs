@@ -35,7 +35,7 @@ pub fn fn_is_symbol(args: &[Node], env: &mut Environment) -> Node {
 
 pub fn fn_is_lparen(args: &[Node], env: &mut Environment) -> Node {
     expect_n_args!(args, 1);
-    if evaluate_node(&args[0], env).value == Value::LParen() {
+    if evaluate_node(&args[0], env).value == Value::List() {
         fn_true(&[])
     } else {
         fn_false(&[])

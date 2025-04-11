@@ -78,7 +78,7 @@ enum Value {
     Text(String),
     Number(i64),
     Symbol(String),
-    LParen(),
+    List(),
     Lambda(),
     Atom(String),
     Module(),
@@ -100,7 +100,7 @@ fn print_tree(node: &Node, depth: usize) -> String {
     return_value.push_str(&match value {
         Value::Text(ref s) => format!("\"{s}\""),
         Value::Number(ref n) => format!("{n}"),
-        Value::LParen() => "(".to_string(),
+        Value::List() => "(".to_string(),
         Value::Lambda() => "lambda".to_string(),
         Value::Symbol(ref s) | Value::Atom(ref s) => s.to_string(),
         Value::Module() => "module".to_string(),
@@ -124,7 +124,7 @@ impl fmt::Display for Node {
 impl Node {
     fn string(&self) -> String {
         match self.value {
-            Value::LParen() => {
+            Value::List() => {
                 let mut result = String::new();
                 for child in &self.children {
                     result.push_str(&child.string());
