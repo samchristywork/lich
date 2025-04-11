@@ -5,7 +5,7 @@ use crate::control::fn_true;
 use crate::evaluate_args;
 use crate::evaluate_node;
 use crate::expect_n_args;
-use crate::intrinsic::fn_print_env;
+use crate::misc::fn_print_env;
 
 pub fn fn_write(args: &[Node], env: &mut Environment) -> Node {
     println!(

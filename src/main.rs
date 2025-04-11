@@ -1,11 +1,14 @@
+mod assignment;
 mod control;
 mod evaluate;
 mod identity;
-mod intrinsic;
 mod io;
+mod list;
 mod logic;
+mod misc;
 mod operator;
 mod parse;
+mod string;
 mod tokenize;
 
 use std::fmt;

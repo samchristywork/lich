@@ -1,12 +1,34 @@
 use crate::Environment;
 use crate::Node;
 use crate::Value;
+use crate::assignment;
 use crate::control;
 use crate::identity;
-use crate::intrinsic;
 use crate::io;
+use crate::list;
 use crate::logic;
+use crate::misc;
 use crate::operator;
+use crate::string;
+
+#[macro_export]
+macro_rules! evaluate_args {
+    ($args:expr, $env:expr) => {
+        $args
+            .iter()
+            .map(|arg| evaluate_node(arg, $env))
+            .collect::<Vec<_>>()
+    };
+}
+
+#[macro_export]
+macro_rules! expect_n_args {
+    ($args:expr, $n:expr) => {
+        if $args.len() != $n {
+            panic!("Expected {} arguments, but got {}", $n, $args.len());
+        }
+    };
+}
 
 pub fn evaluate_node(node: &Node, env: &mut Environment) -> Node {
     match &node.value {
@@ -81,45 +103,41 @@ pub fn handle_symbol(function: &Node, args: &[Node], env: &mut Environment) -> N
         "read-file!" => io::fn_read_file(args, env),
 
         // Strings
-        "join" => intrinsic::fn_join(args, env),
-        "split" => intrinsic::fn_split(args, env),
-        "lines" => intrinsic::fn_lines(args, env),
-        "strlen" => intrinsic::fn_strlen(args, env),
-        "empty-string?" => intrinsic::fn_empty_string(args, env),
-
-        // Environment
-        "print-env!" => intrinsic::fn_print_env(args, env),
+        "join" => string::fn_join(args, env),
+        "split" => string::fn_split(args, env),
+        "lines" => string::fn_lines(args, env),
+        "strlen" => string::fn_strlen(args, env),
+        "empty-string?" => string::fn_empty_string(args, env),
 
         // Assignment
-        "def!" => intrinsic::fn_def(args, env),
-        "func!" => intrinsic::fn_func(args, env),
-        "set" => intrinsic::fn_set(args, env),
-        "lambda" => intrinsic::fn_lambda(args), // TODO: Is ! needed?
-
-        // Higher-order functions
-        "map" => intrinsic::fn_map(args, env),
-        "filter" => intrinsic::fn_filter(args, env),
+        "def!" => assignment::fn_def(args, env),
+        "func!" => assignment::fn_func(args, env),
+        "set" => assignment::fn_set(args, env),
+        "lambda" => assignment::fn_lambda(args), // TODO: Is ! needed?
 
         // Lists
-        "list" | "'" => intrinsic::fn_list(args, env),
-        "head" => intrinsic::fn_head(args, env),
-        "last" => intrinsic::fn_last(args, env),
-        "tail" => intrinsic::fn_tail(args, env),
-        "length" => intrinsic::fn_length(args, env),
-        "reverse" => intrinsic::fn_reverse(args, env),
+        "list" | "'" => list::fn_list(args, env),
+        "head" => list::fn_head(args, env),
+        "last" => list::fn_last(args, env),
+        "tail" => list::fn_tail(args, env),
+        "length" => list::fn_length(args, env),
+        "reverse" => list::fn_reverse(args, env),
 
         // Miscellaneous
-        "get-environment-variable!" => intrinsic::fn_get_environment_variable(args, env),
-        "even?" => intrinsic::fn_is_even(args, env),
-        "odd?" => intrinsic::fn_is_odd(args, env),
-        "url-encode" => intrinsic::fn_url_encode(args, env),
-        "url-decode" => intrinsic::fn_url_decode(args, env),
-        "load!" => intrinsic::fn_load(args, env),
-        "sleep" => intrinsic::fn_sleep(args, env),
-        "sleep-ms" => intrinsic::fn_sleep_ms(args, env),
-        "time-ms" => intrinsic::fn_time_ms(args, env),
-        "system!" => intrinsic::fn_system(args, env),
-        "contains" => intrinsic::fn_contains(args, env),
+        "map" => misc::fn_map(args, env),
+        "filter" => misc::fn_filter(args, env),
+        "print-env!" => misc::fn_print_env(args, env),
+        "get-environment-variable!" => misc::fn_get_environment_variable(args, env),
+        "even?" => misc::fn_is_even(args, env),
+        "odd?" => misc::fn_is_odd(args, env),
+        "url-encode" => misc::fn_url_encode(args, env),
+        "url-decode" => misc::fn_url_decode(args, env),
+        "load!" => misc::fn_load(args, env),
+        "sleep" => misc::fn_sleep(args, env),
+        "sleep-ms" => misc::fn_sleep_ms(args, env),
+        "time-ms" => misc::fn_time_ms(args, env),
+        "system!" => misc::fn_system(args, env),
+        "contains" => misc::fn_contains(args, env),
         _ => env.get(name).map_or_else(
             || panic!("Unknown function: {name}"),
             std::clone::Clone::clone,
