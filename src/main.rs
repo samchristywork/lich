@@ -1,12 +1,16 @@
-use std::fs;
-use std::io::Write;
-
+mod control;
 mod evaluate;
+mod identity;
 mod intrinsic;
+mod io;
+mod logic;
+mod operator;
 mod parse;
 mod tokenize;
 
 use std::fmt;
+use std::fs;
+use std::io::Write;
 
 use crate::evaluate::evaluate_node;
 use crate::evaluate::handle_symbol;

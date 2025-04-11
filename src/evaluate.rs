@@ -1,15 +1,14 @@
 use crate::Environment;
 use crate::Node;
 use crate::Value;
+use crate::control;
+use crate::identity;
 use crate::intrinsic;
-
-const VERBOSE: bool = false;
+use crate::io;
+use crate::logic;
+use crate::operator;
 
 pub fn evaluate_node(node: &Node, env: &mut Environment) -> Node {
-    if VERBOSE {
-        println!("Evaluating node: {node}");
-    }
-
     match &node.value {
         Value::LParen() => {
             let function = evaluate_node(&node.children[0], env);
@@ -30,60 +29,56 @@ pub fn evaluate_node(node: &Node, env: &mut Environment) -> Node {
 }
 
 pub fn handle_symbol(function: &Node, args: &[Node], env: &mut Environment) -> Node {
-    if VERBOSE {
-        println!("Handling symbol: {function}");
-    }
-
     let Value::Symbol(name) = &function.value else {
         panic!("Expected a symbol, found: {:?}", function.value);
     };
 
     match name.as_str() {
         // Operators
-        "+" => intrinsic::fn_add(args, env),
-        "-" => intrinsic::fn_sub(args, env),
-        "*" => intrinsic::fn_mul(args, env),
-        "=" => intrinsic::fn_equal(args, env),
-        "<" => intrinsic::fn_less_than(args, env),
-        ">" => intrinsic::fn_greater_than(args, env),
-        "^" => intrinsic::fn_pow(args, env),
-        "%" => intrinsic::fn_mod(args, env),
-        "++" => intrinsic::fn_inc(args, env),
-        "--" => intrinsic::fn_dec(args, env),
-        "max" => intrinsic::fn_max(args, env),
-        "min" => intrinsic::fn_min(args, env),
+        "+" => operator::fn_add(args, env),
+        "-" => operator::fn_sub(args, env),
+        "*" => operator::fn_mul(args, env),
+        "=" => operator::fn_equal(args, env),
+        "<" => operator::fn_less_than(args, env),
+        ">" => operator::fn_greater_than(args, env),
+        "^" => operator::fn_pow(args, env),
+        "%" => operator::fn_mod(args, env),
+        "++" => operator::fn_inc(args, env),
+        "--" => operator::fn_dec(args, env),
+        "max" => operator::fn_max(args, env),
+        "min" => operator::fn_min(args, env),
 
         // Types
-        "text?" => intrinsic::fn_is_text(args, env),
-        "number?" => intrinsic::fn_is_number(args, env),
-        "symbol?" => intrinsic::fn_is_symbol(args, env),
-        "list?" => intrinsic::fn_is_lparen(args, env),
-        "lambda?" => intrinsic::fn_is_lambda(args, env),
-        "atom?" => intrinsic::fn_is_atom(args, env),
+        "text?" => identity::fn_is_text(args, env),
+        "number?" => identity::fn_is_number(args, env),
+        "symbol?" => identity::fn_is_symbol(args, env),
+        "list?" => identity::fn_is_lparen(args, env),
+        "lambda?" => identity::fn_is_lambda(args, env),
+        "atom?" => identity::fn_is_atom(args, env),
 
         // Logical
-        "&&" => intrinsic::fn_and(args, env),
-        "||" => intrinsic::fn_or(args, env),
+        "&&" => logic::fn_and(args, env),
+        "||" => logic::fn_or(args, env),
 
         // Control flow
-        "if" => intrinsic::fn_if(args, env),
-        "cond" => intrinsic::fn_cond(args, env),
-        "repeat" => intrinsic::fn_repeat(args, env),
-        "loop" => intrinsic::fn_loop(args, env),
-        "true" => intrinsic::fn_true(args),
-        "false" => intrinsic::fn_false(args),
-        "|" => intrinsic::fn_pipeline(args, env),
-        "rev|" => intrinsic::fn_reverse_pipeline(args, env),
-        "{}" => intrinsic::fn_block(args, env),
-        "exit" => intrinsic::fn_exit(args, env), // TODO: Is ! needed?
+        "true" => control::fn_true(args),
+        "false" => control::fn_false(args),
+        "if" => control::fn_if(args, env),
+        "cond" => control::fn_cond(args, env),
+        "repeat" => control::fn_repeat(args, env),
+        "loop" => control::fn_loop(args, env),
+        "|" => control::fn_pipeline(args, env),
+        "rev|" => control::fn_reverse_pipeline(args, env),
+        "{}" => control::fn_block(args, env),
+        "exit" => control::fn_exit(args, env), // TODO: Is ! needed?
 
         // I/O
-        "write!" => intrinsic::fn_write(args, env),
-        "!" => intrinsic::fn_debug_write(args, env),
-        "write-stderr!" => intrinsic::fn_write_stderr(args, env),
-        "write-file!" => intrinsic::fn_write_file(args, env),
-        "read-line!" => intrinsic::fn_read_line(args),
-        "read-file!" => intrinsic::fn_read_file(args, env),
+        "write!" => io::fn_write(args, env),
+        "!" => io::fn_debug_write(args, env),
+        "write-stderr!" => io::fn_write_stderr(args, env),
+        "write-file!" => io::fn_write_file(args, env),
+        "read-line!" => io::fn_read_line(args),
+        "read-file!" => io::fn_read_file(args, env),
 
         // Strings
         "join" => intrinsic::fn_join(args, env),
@@ -133,12 +128,6 @@ pub fn handle_symbol(function: &Node, args: &[Node], env: &mut Environment) -> N
 }
 
 fn apply_function(function: &Node, args: &[Node], env: &mut Environment) -> Node {
-    if VERBOSE {
-        println!("Applying function: {function}");
-        for arg in args {
-            println!("Argument: {arg}");
-        }
-    }
     match function.value {
         Value::Symbol(_) => handle_symbol(function, args, env),
         Value::Lambda() => {
@@ -155,7 +144,7 @@ fn apply_function(function: &Node, args: &[Node], env: &mut Environment) -> Node
                 }
             }
 
-            let mut return_value = intrinsic::fn_true(&[]);
+            let mut return_value = control::fn_true(&[]);
             for child in body {
                 return_value = evaluate_node(child, &mut new_env);
             }
