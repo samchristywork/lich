@@ -73,12 +73,15 @@ pub fn fn_set(args: &[Node], env: &mut Environment) -> Node {
     expect_n_args!(args, 3);
 
     if let Value::Symbol(name) = evaluate_node(&args[0], env).value {
-        let value = evaluate_node(&args[1], env);
+        let value = &args[1];
         let body = &args[2];
 
         let mut new_env = env.clone();
-        new_env.set(name, value);
-        return evaluate_node(body, &mut new_env);
+        new_env.set(name, value.clone());
+        for child in &body.children {
+            evaluate_node(child, &mut new_env);
+        }
+        return fn_true(&[]);
     }
 
     panic!("Invalid argument for set function");
