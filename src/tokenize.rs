@@ -108,6 +108,23 @@ pub fn tokenize(source: &str) -> Vec<Token> {
                     range: Range { start, end },
                 });
             }
+            '`' => {
+                let mut value = String::new();
+                while let Some(&(next_start, next_c)) = chars.peek() {
+                    chars.next();
+                    end = next_start;
+                    if next_c == '`' {
+                        break;
+                    }
+
+                    value.push(next_c);
+                }
+                tokens.push(Token {
+                    value,
+                    kind: TokenKind::Text,
+                    range: Range { start, end },
+                });
+            }
             '"' => {
                 let mut value = String::new();
                 while let Some(&(next_start, next_c)) = chars.peek() {
