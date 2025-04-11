@@ -20,7 +20,7 @@ use crate::evaluate::handle_symbol;
 use crate::parse::parse_tokens;
 use crate::tokenize::tokenize;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 struct Range {
     start: usize,
     end: usize,
@@ -42,7 +42,7 @@ enum TokenKind {
     Atom,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 struct Token {
     value: String,
     kind: TokenKind,
@@ -84,7 +84,7 @@ enum Value {
     Module(),
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 struct Node {
     token: Token,
     value: Value,
@@ -242,14 +242,18 @@ fn main() {
             std::io::stdin()
                 .read_line(&mut input)
                 .expect("Failed to read line");
-            let input = input.trim();
-            if input == "exit" {
-                break;
-            }
-            if input.is_empty() {
-                continue;
-            }
-            let tokens = tokenize(input);
+
+            let input = match input.trim() {
+                "" => continue,
+                "exit" => break,
+                _ => input,
+            };
+
+            let tokens = tokenize(&if input.starts_with('(') {
+                input
+            } else {
+                format!("({input})")
+            });
             if print_tokens {
                 println!("\n{GREY}Tokens:{NORMAL}");
                 for token in &tokens {
