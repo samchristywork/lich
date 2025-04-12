@@ -10,6 +10,8 @@ use crate::logic;
 use crate::misc;
 use crate::operator;
 use crate::string;
+use crate::log_debug;
+use crate::log_message;
 
 #[macro_export]
 macro_rules! evaluate_args {
@@ -31,6 +33,8 @@ macro_rules! expect_n_args {
 }
 
 pub fn evaluate_node(node: &Node, env: &mut Environment) -> Node {
+    log_debug!("Evaluating node: {node}");
+
     match &node.value {
         Value::List() => {
             let function = evaluate_node(&node.children[0], env);
@@ -51,6 +55,8 @@ pub fn evaluate_node(node: &Node, env: &mut Environment) -> Node {
 }
 
 pub fn handle_symbol(function: &Node, args: &[Node], env: &mut Environment) -> Node {
+    log_debug!("Handling symbol: {function}");
+
     let Value::Symbol(name) = &function.value else {
         panic!("Expected a symbol, found: {:?}", function.value);
     };
@@ -92,11 +98,11 @@ pub fn handle_symbol(function: &Node, args: &[Node], env: &mut Environment) -> N
         "|" => control::fn_pipeline(args, env),
         "rev|" => control::fn_reverse_pipeline(args, env),
         "{}" => control::fn_block(args, env),
-        "exit" => control::fn_exit(args, env), // TODO: Is ! needed?
+        "exit" => control::fn_exit(args, env),
 
         // I/O
-        "write!" => io::fn_write(args, env),
-        "!" => io::fn_debug_write(args, env),
+        "write!" | "!" => io::fn_write(args, env),
+        "?" => io::fn_debug_write(args, env),
         "write-stderr!" => io::fn_write_stderr(args, env),
         "write-file!" => io::fn_write_file(args, env),
         "read-line!" => io::fn_read_line(args),
@@ -110,10 +116,9 @@ pub fn handle_symbol(function: &Node, args: &[Node], env: &mut Environment) -> N
         "empty-string?" => string::fn_empty_string(args, env),
 
         // Assignment
-        "def!" => assignment::fn_def(args, env),
         "func!" => assignment::fn_func(args, env),
         "set" => assignment::fn_set(args, env),
-        "lambda" => assignment::fn_lambda(args), // TODO: Is ! needed?
+        "lambda" | "λ" => assignment::fn_lambda(args),
 
         // Lists
         "list" | "'" => list::fn_list(args, env),
@@ -145,7 +150,9 @@ pub fn handle_symbol(function: &Node, args: &[Node], env: &mut Environment) -> N
     }
 }
 
-fn apply_function(function: &Node, args: &[Node], env: &mut Environment) -> Node {
+pub fn apply_function(function: &Node, args: &[Node], env: &mut Environment) -> Node {
+    log_debug!("Applying function: {function}");
+
     match function.value {
         Value::Symbol(_) => handle_symbol(function, args, env),
         Value::Lambda() => {

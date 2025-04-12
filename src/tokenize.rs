@@ -37,18 +37,17 @@ macro_rules! push_token {
                 end: $end,
             },
         })
-    }
+    };
 }
 
 fn is_valid_number(value: &str) -> bool {
-    if value.is_empty() {
-        panic!("Empty string is not a valid number or symbol");
-    }
+    assert!(!value.is_empty(), "Empty string is not a valid number or symbol");
 
     if value == "-" {
         return false;
     } else if value.len() == 1 {
-        return value.chars().next().unwrap().is_ascii_digit();
+        return value.chars().next().expect("Single character")
+            .is_ascii_digit();
     }
 
     if value[0..1] == *"-" {

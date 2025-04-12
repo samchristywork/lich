@@ -4,6 +4,7 @@ mod evaluate;
 mod identity;
 mod io;
 mod list;
+mod log;
 mod logic;
 mod misc;
 mod operator;
@@ -13,12 +14,23 @@ mod tokenize;
 
 use std::fmt;
 use std::fs;
+use std::fs::File;
 use std::io::Write;
+use std::sync::Mutex;
 
 use crate::evaluate::evaluate_node;
 use crate::evaluate::handle_symbol;
+use crate::log::initialize_logger;
+use crate::log::log_message;
 use crate::parse::parse_tokens;
 use crate::tokenize::tokenize;
+
+#[macro_use]
+extern crate lazy_static;
+
+lazy_static! {
+    static ref LOG_FILE: Mutex<Option<File>> = Mutex::new(None);
+}
 
 #[derive(Clone, Debug)]
 struct Range {
@@ -117,7 +129,18 @@ fn print_tree(node: &Node, depth: usize) -> String {
 
 impl fmt::Display for Node {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", print_tree(self, 0))
+        //write!(f, "{}", print_tree(self, 0))
+        match self.value {
+            Value::List() => {
+                let mut result = String::new();
+                for child in &self.children {
+                    result.push_str(&child.string());
+                    result.push(' ');
+                }
+                write!(f, "({})", result.trim_end())
+            }
+            _ => write!(f, "{}", self.string()),
+        }
     }
 }
 
@@ -135,9 +158,7 @@ impl Node {
             Value::Lambda() => "lambda".to_string(),
             Value::Number(ref n) => n.to_string(),
             Value::Text(ref s) | Value::Symbol(ref s) | Value::Atom(ref s) => s.clone(),
-            Value::Module() => {
-                panic!("Module should not be printed as a string")
-            }
+            Value::Module() => "module".to_string(),
         }
     }
 }
@@ -186,6 +207,9 @@ fn process_file(filename: &str, env: &mut Environment, print_tokens: bool, print
 }
 
 fn main() {
+    initialize_logger("lich.log").expect("Failed to initialize logger");
+    log_info!("Application started.");
+
     let mut env = Environment::new();
 
     let flags: Vec<String> = std::env::args()
