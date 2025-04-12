@@ -1,10 +1,12 @@
 use crate::Environment;
 use crate::Node;
 use crate::Value;
+use crate::evaluate;
 use crate::evaluate_args;
 use crate::evaluate_node;
 use crate::expect_n_args;
 
+// TODO: Check this
 pub fn fn_list(args: &[Node], env: &mut Environment) -> Node {
     let list = evaluate_args!(args, env);
 
@@ -20,10 +22,10 @@ pub fn fn_head(args: &[Node], env: &mut Environment) -> Node {
 
     let n = evaluate_node(&args[0], env);
     if n.value == Value::List() {
-        if args[0].children.is_empty() {
+        if n.children.is_empty() {
             panic!("Empty list");
         } else {
-            return n.children[0].clone();
+            return evaluate::apply_function(&n.children[0], &args[1..], env);
         }
     }
 
@@ -35,7 +37,7 @@ pub fn fn_last(args: &[Node], env: &mut Environment) -> Node {
 
     let n = evaluate_node(&args[0], env);
     if n.value == Value::List() {
-        if args[0].children.is_empty() {
+        if n.children.is_empty() {
             panic!("Empty list");
         } else {
             return n.children.last().expect("No last element").clone();
@@ -50,7 +52,7 @@ pub fn fn_tail(args: &[Node], env: &mut Environment) -> Node {
 
     let n = evaluate_node(&args[0], env);
     if n.value == Value::List() {
-        if args[0].children.is_empty() {
+        if n.children.is_empty() {
             panic!("Empty list");
         } else {
             return Node {
