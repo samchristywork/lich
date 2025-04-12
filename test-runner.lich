@@ -1,0 +1,21 @@
+#!/bin/env lich
+
+(func! test! (name expected actual)
+  (if (= expected actual)
+    (write! (join "" ("  " name)) "[32mSuccess[0m")
+    ({}
+      (write! name "[31mFailure[0m")
+      (write! "  Expected:" expected)
+      (write! "  Actual:  " actual)
+      (exit 1))))
+
+(func! run-test! (path)
+  (write! (join "" ("[33m" path)) "[0mtook[32m"
+  (time-ms (load! path))
+  "[0mmilliseconds to complete."))
+
+(map run-test! (
+  "tests/intrinsics.lich"
+  "tests/fib.lich"
+  "tests/matrix.lich"
+))
