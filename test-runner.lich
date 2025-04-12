@@ -15,7 +15,10 @@
   "[0mmilliseconds to complete."))
 
 (map run-test! (
-  "tests/intrinsics.lich"
   "tests/fib.lich"
+  "tests/operators.lich"
+  "tests/type-checking.lich"
+  "tests/intrinsics.lich"
+  "tests/strings.lich"
   "tests/matrix.lich"
 ))
