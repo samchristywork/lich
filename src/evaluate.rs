@@ -35,10 +35,28 @@ macro_rules! expect_n_args {
 pub fn evaluate_node(node: &Node, env: &mut Environment) -> Node {
     log_debug!("Evaluating node: {node}");
 
-    match &node.value {
+    let result = match &node.value {
         Value::List() => {
             let function = evaluate_node(&node.children[0], env);
-            apply_function(&function, &node.children[1..], env)
+            if let Value::Symbol(ref s) = function.value {
+                apply_function(&function, &node.children[1..], env)
+            } else if let Value::Lambda() = function.value {
+                let args = evaluate_args!(&node.children[1..], env);
+                apply_function(&function, &args, env)
+            } else if let Value::Number(_) = function.value {
+                let mut result = node.clone();
+                result
+            } else if let Value::Module() = function.value {
+                let mut result = node.clone();
+                for child in &node.children[1..] {
+                    result = evaluate_node(child, env);
+                }
+                result
+            } else if let Value::List() = function.value {
+                node.clone()
+            } else {
+                panic!("Expected a function, found: {:?}", function.value);
+            }
         }
         Value::Symbol(s) => env
             .get(s)
@@ -51,7 +69,10 @@ pub fn evaluate_node(node: &Node, env: &mut Environment) -> Node {
             result
         }
         _ => node.clone(),
-    }
+    };
+
+    log_debug!("Result of evaluation: {node} -> {result}");
+    result
 }
 
 pub fn handle_symbol(function: &Node, args: &[Node], env: &mut Environment) -> Node {
@@ -61,7 +82,7 @@ pub fn handle_symbol(function: &Node, args: &[Node], env: &mut Environment) -> N
         panic!("Expected a symbol, found: {:?}", function.value);
     };
 
-    match name.as_str() {
+    let result = match name.as_str() {
         // Operators
         "+" => operator::fn_add(args, env),
         "-" => operator::fn_sub(args, env),
@@ -147,13 +168,16 @@ pub fn handle_symbol(function: &Node, args: &[Node], env: &mut Environment) -> N
             || panic!("Unknown function: {name}"),
             std::clone::Clone::clone,
         ),
-    }
+    };
+
+    log_debug!("Result of symbol handling: {function} -> {result}");
+    result
 }
 
 pub fn apply_function(function: &Node, args: &[Node], env: &mut Environment) -> Node {
     log_debug!("Applying function: {function}");
 
-    match function.value {
+    let result = match function.value {
         Value::Symbol(_) => handle_symbol(function, args, env),
         Value::Lambda() => {
             let params = &function.children[0];
@@ -180,5 +204,8 @@ pub fn apply_function(function: &Node, args: &[Node], env: &mut Environment) -> 
             apply_function(&function.children[0].clone(), &function.children[1..], env)
         }
         _ => panic!("Invalid function application: {:?}", function.value),
-    }
+    };
+
+    log_debug!("Result of function application: {function} -> {result}");
+    result
 }

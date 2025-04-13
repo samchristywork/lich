@@ -6,14 +6,11 @@ use crate::evaluate_args;
 use crate::evaluate_node;
 use crate::expect_n_args;
 
-// TODO: Check this
 pub fn fn_list(args: &[Node], env: &mut Environment) -> Node {
-    let list = evaluate_args!(args, env);
-
     Node {
         token: args[0].token.clone(),
         value: Value::List(),
-        children: list,
+        children: args.to_vec(),
     }
 }
 
@@ -25,7 +22,7 @@ pub fn fn_head(args: &[Node], env: &mut Environment) -> Node {
         if n.children.is_empty() {
             panic!("Empty list");
         } else {
-            return evaluate::apply_function(&n.children[0], &args[1..], env);
+            return n.children.first().expect("No first element").clone();
         }
     }
 
@@ -84,7 +81,7 @@ pub fn fn_length(args: &[Node], env: &mut Environment) -> Node {
 pub fn fn_reverse(args: &[Node], env: &mut Environment) -> Node {
     expect_n_args!(args, 1);
 
-    let n = evaluate_node(&args[0], env);
+    let n = &args[0];
     if n.value == Value::List() {
         return Node {
             token: args[0].token.clone(),
