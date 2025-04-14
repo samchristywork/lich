@@ -60,6 +60,18 @@ impl fmt::Display for Environment {
     }
 }
 
+impl Environment {
+    fn lookup(&self, node: &Node) -> Node {
+        if let Some(value) = self.variables.get(node) {
+            return value.clone();
+        } else if let Some(parent) = &self.parent {
+            return parent.lookup(node);
+        }
+
+        panic!("Undefined variable: {node:?}");
+    }
+}
+
 enum Token {
     Symbol(String),
     Number(i64),
@@ -183,6 +195,40 @@ fn tokenize(source: &str) -> Vec<Token> {
     }
 
     tokens
+}
+
+fn parse_tokens(tokens: &[Token]) -> Vec<Node> {
+    let mut stack = Vec::new();
+    let mut current_list = Vec::new();
+
+    for token in tokens {
+        match token {
+            Token::LParen => {
+                stack.push(current_list);
+                current_list = Vec::new();
+            }
+            Token::RParen => {
+                if let Some(last_list) = stack.pop() {
+                    let list_node = Node::List(current_list);
+                    current_list = last_list;
+                    current_list.push(list_node);
+                } else {
+                    panic!("Unmatched closing parenthesis");
+                }
+            }
+            Token::Symbol(s) => current_list.push(Node::Symbol(s.clone())),
+            Token::Number(n) => current_list.push(Node::Number(*n)),
+            Token::String(s) => current_list.push(Node::String(s.clone())),
+            Token::Bool(b) => current_list.push(Node::Bool(*b)),
+        }
+    }
+
+    current_list
+}
+
+fn parse(input: &str) -> Vec<Node> {
+    let tokens = tokenize(input);
+    parse_tokens(&tokens)
 }
 
 fn main() {
