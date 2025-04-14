@@ -10,6 +10,7 @@ enum Node {
     String(String),
     Bool(bool),
     List(Vec<Node>),
+    Function(fn(&[Node]) -> Node),
 }
 
 impl fmt::Display for Node {
@@ -18,6 +19,7 @@ impl fmt::Display for Node {
             Node::Number(n) => n.to_string(),
             Node::Bool(b) => b.to_string(),
             Node::String(s) | Node::Symbol(s) => s.clone(),
+            Node::Function(_) => "function".to_string(),
             Node::List(nodes) => {
                 let mut result = String::new();
                 result.push('(');
@@ -69,6 +71,17 @@ impl Environment {
         }
 
         panic!("Undefined variable: {node:?}");
+    }
+
+    fn add_function(
+        &mut self,
+        name: &str,
+        function: fn(&[Node]) -> Node,
+    ) {
+        self.variables.insert(
+            Node::Symbol(name.to_string()),
+            Node::Function(function),
+        );
     }
 }
 
@@ -242,6 +255,7 @@ fn eval_list(nodes: &[Node], env: &mut Environment) -> Node {
     match first {
         Node::Symbol(s) => {
             let operator = s.as_str();
+
             if operator == "quote" {
                 rest[0].clone()
             } else if operator == "if" {
@@ -328,6 +342,7 @@ fn eval(node: &Node, env: &mut Environment) -> Node {
         Node::Symbol(_) => env.lookup(node),
         Node::Number(_) | Node::String(_) | Node::Bool(_) => node.clone(),
         Node::List(nodes) => eval_list(nodes, env),
+        Node::Function(_) => node.clone(),
     }
 }
 
@@ -351,50 +366,11 @@ fn apply(function: &Node, arguments: &[Node], env: &mut Environment) -> Node {
             }
             panic!("Function application not implemented");
         }
+        Node::Function(f) => {
+            return f(arguments);
+        }
         Node::Symbol(s) => {
-            if s == "+" {
-                Node::Number(
-                    arguments
-                        .iter()
-                        .map(|n| {
-                            if let Node::Number(num) = n {
-                                *num
-                            } else {
-                                panic!("Invalid argument for addition {n:?}");
-                            }
-                        })
-                        .sum(),
-                )
-            } else if s == "-" {
-                if arguments.len() == 1 {
-                    if let Node::Number(num) = &arguments[0] {
-                        return Node::Number(-num);
-                    }
-                } else if arguments.len() == 2 {
-                    if let (Node::Number(a), Node::Number(b)) = (&arguments[0], &arguments[1]) {
-                        return Node::Number(a - b);
-                    }
-                }
-                panic!("Invalid arguments for subtraction");
-            } else if s == "*" {
-                Node::Number(
-                    arguments
-                        .iter()
-                        .map(|n| {
-                            if let Node::Number(num) = n {
-                                *num
-                            } else {
-                                panic!("Invalid argument for multiplication {n:?}");
-                            }
-                        })
-                        .product(),
-                )
-            } else if s == "=" {
-                if arguments.len() == 2 {
-                    return Node::Bool(arguments[0] == arguments[1]);
-                }
-                panic!("Invalid arguments for equality check");
-            } else if s == "write" {
+            if s == "write" {
                 for arg in arguments {
                     print!("{arg}");
                 }
@@ -504,6 +480,7 @@ fn apply(function: &Node, arguments: &[Node], env: &mut Environment) -> Node {
                         Node::Bool(_) => return Node::String("bool".to_string()),
                         Node::List(_) => return Node::String("list".to_string()),
                         Node::Symbol(_) => return Node::String("symbol".to_string()),
+                        Node::Function(_) => return Node::String("function".to_string()),
                     }
                 }
                 panic!("Invalid arguments for type?");
@@ -629,6 +606,54 @@ fn apply(function: &Node, arguments: &[Node], env: &mut Environment) -> Node {
     }
 }
 
+fn fn_add(arguments: &[Node]) -> Node {
+    Node::Number(
+        arguments
+        .iter()
+        .map(|n| {
+            if let Node::Number(num) = n {
+                *num
+            } else {
+                panic!("Invalid argument for addition {n:?}");
+            }
+        })
+        .sum())
+}
+
+fn fn_sub(arguments: &[Node]) -> Node {
+    if arguments.len() == 1 {
+        if let Node::Number(num) = &arguments[0] {
+            return Node::Number(-num);
+        }
+    } else if arguments.len() == 2 {
+        if let (Node::Number(a), Node::Number(b)) = (&arguments[0], &arguments[1]) {
+            return Node::Number(a - b);
+        }
+    }
+    panic!("Invalid arguments for subtraction");
+}
+
+fn fn_mult(arguments: &[Node]) -> Node {
+    Node::Number(
+        arguments
+        .iter()
+        .map(|n| {
+            if let Node::Number(num) = n {
+                *num
+            } else {
+                panic!("Invalid argument for multiplication {n:?}");
+            }
+        })
+        .product())
+}
+
+fn fn_eq(arguments: &[Node]) -> Node {
+    if arguments.len() == 2 {
+        return Node::Bool(arguments[0] == arguments[1]);
+    }
+    panic!("Invalid arguments for equality check");
+}
+
 fn main() {
     let mut env = Environment {
         parent: None,
@@ -636,10 +661,6 @@ fn main() {
     };
 
     let symbols = vec![
-        "+",
-        "-",
-        "*",
-        "=",
         "write",
         "write-line",
         "car",
@@ -672,6 +693,11 @@ fn main() {
             Node::Symbol(symbol.to_string()),
         );
     }
+
+    env.add_function("+", fn_add);
+    env.add_function("-", fn_sub);
+    env.add_function("*", fn_mult);
+    env.add_function("=", fn_eq);
 
     let args = std::env::args().collect::<Vec<_>>();
 
