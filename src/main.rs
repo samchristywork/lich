@@ -231,6 +231,7 @@ fn parse(input: &str) -> Vec<Node> {
     parse_tokens(&tokens)
 }
 
+
 fn eval(node: &Node, env: &mut Environment) -> Node {
     match node {
         Node::Symbol(_) => env.lookup(node),
@@ -288,6 +289,35 @@ fn eval(node: &Node, env: &mut Environment) -> Node {
                         let lambda =
                             Node::List(vec![Node::Symbol("lambda".to_string()), parameters, body]);
                         return lambda;
+                    } else if operator == "let" {
+                        if rest.len() == 2 {
+                            let bindings = &rest[0];
+                            let body = &rest[1];
+
+                            if let Node::List(bindings_list) = bindings {
+                                let mut new_env = Environment {
+                                    parent: Some(Box::new(env.clone())),
+                                    variables: std::collections::HashMap::new(),
+                                };
+
+                                for binding in bindings_list {
+                                    if let Node::List(binding_pair) = binding {
+                                        if binding_pair.len() == 2 {
+                                            let variable = &binding_pair[0];
+                                            let value = eval(&binding_pair[1], env);
+                                            new_env.variables.insert(variable.clone(), value);
+                                        } else {
+                                            panic!("Invalid binding pair");
+                                        }
+                                    } else {
+                                        panic!("Invalid binding");
+                                    }
+                                }
+
+                                return eval(body, &mut new_env);
+                            }
+                        }
+                        panic!("Invalid arguments for let");
                     } else {
                         let function = env.lookup(first);
                         let arguments = rest.iter().map(|n| eval(n, env)).collect::<Vec<_>>();
@@ -297,6 +327,304 @@ fn eval(node: &Node, env: &mut Environment) -> Node {
                 _ => panic!("Unknown operator {first:?}"),
             }
         }
+    }
+}
+
+fn apply(function: &Node, arguments: &[Node], env: &mut Environment) -> Node {
+    match function {
+        Node::List(nodes) => {
+            if let Node::Symbol(s) = &nodes[0] {
+                if s == "lambda" {
+                    if let Node::List(params) = &nodes[1] {
+                        assert!((params.len() == arguments.len()), "Argument count mismatch");
+                        let mut new_env = Environment {
+                            parent: Some(Box::new(env.clone())),
+                            variables: std::collections::HashMap::new(),
+                        };
+                        for (param, arg) in params.iter().zip(arguments) {
+                            new_env.variables.insert(param.clone(), arg.clone());
+                        }
+                        return eval(&nodes[2], &mut new_env);
+                    }
+                }
+            }
+            panic!("Function application not implemented");
+        }
+        Node::Symbol(s) => {
+            if s == "+" {
+                Node::Number(
+                    arguments
+                        .iter()
+                        .map(|n| {
+                            if let Node::Number(num) = n {
+                                *num
+                            } else {
+                                panic!("Invalid argument for addition {n:?}");
+                            }
+                        })
+                        .sum(),
+                )
+            } else if s == "-" {
+                if arguments.len() == 1 {
+                    if let Node::Number(num) = &arguments[0] {
+                        return Node::Number(-num);
+                    }
+                } else if arguments.len() == 2 {
+                    if let (Node::Number(a), Node::Number(b)) = (&arguments[0], &arguments[1]) {
+                        return Node::Number(a - b);
+                    }
+                }
+                panic!("Invalid arguments for subtraction");
+            } else if s == "*" {
+                Node::Number(
+                    arguments
+                        .iter()
+                        .map(|n| {
+                            if let Node::Number(num) = n {
+                                *num
+                            } else {
+                                panic!("Invalid argument for multiplication {n:?}");
+                            }
+                        })
+                        .product(),
+                )
+            } else if s == "=" {
+                if arguments.len() == 2 {
+                    return Node::Bool(arguments[0] == arguments[1]);
+                }
+                panic!("Invalid arguments for equality check");
+            } else if s == "write" {
+                for arg in arguments {
+                    print!("{arg}");
+                }
+                return Node::Bool(true);
+            } else if s == "write-line" {
+                for arg in arguments {
+                    print!("{arg}");
+                }
+                println!();
+                return Node::Bool(true);
+            } else if s == "car" {
+                if arguments.len() == 1 {
+                    if let Node::List(list) = &arguments[0] {
+                        if list.is_empty() {
+                            return Node::Symbol("nil".to_string());
+                        }
+                        return list[0].clone();
+                    }
+                }
+                panic!("Invalid arguments for car");
+            } else if s == "cdr" {
+                if arguments.len() == 1 {
+                    if let Node::List(list) = &arguments[0] {
+                        if list.len() > 1 {
+                            return Node::List(list[1..].to_vec());
+                        } else if list.len() <= 1 {
+                            return Node::List(vec![]);
+                        }
+                    }
+                }
+                panic!("Invalid arguments for cdr");
+            } else if s == "cons" {
+                if arguments.len() == 2 {
+                    if let Node::List(list) = &arguments[1] {
+                        let mut new_list = vec![arguments[0].clone()];
+                        new_list.extend_from_slice(list);
+                        return Node::List(new_list);
+                    }
+                }
+                panic!("Invalid arguments for cons");
+            } else if s == "begin" {
+                let mut result = Node::Bool(false);
+                for arg in arguments {
+                    result = eval(arg, env);
+                }
+
+                return result;
+            } else if s == "print-env" {
+                println!("{env}");
+                return Node::Bool(true);
+            } else if s == "nil" {
+                return Node::List(vec![]);
+            } else if s == "length" {
+                if arguments.len() == 1 {
+                    if let Node::List(list) = &arguments[0] {
+                        return Node::Number(
+                            i64::try_from(list.len()).expect("Failed to convert length"),
+                        );
+                    }
+                }
+                panic!("Invalid arguments for length: {:?}", &arguments[0]);
+            } else if s == "null?" {
+                if arguments.len() == 1 {
+                    if let Node::List(list) = &arguments[0] {
+                        return Node::Bool(list.is_empty());
+                    }
+
+                    return Node::Bool(false);
+                }
+                panic!("Invalid arguments for null?");
+            } else if s == "concat" {
+                if arguments.len() == 2 {
+                    if let (Node::String(s1), Node::String(s2)) =
+                        (&arguments[0], &arguments[1])
+                    {
+                        return Node::String(format!("{s1}{s2}"));
+                    } else if let (Node::List(l1), Node::List(l2)) =
+                        (&arguments[0], &arguments[1])
+                    {
+                        let mut new_list = l1.clone();
+                        new_list.extend_from_slice(l2);
+                        return Node::List(new_list);
+                    }
+                }
+                panic!("Invalid arguments for concat");
+            } else if s == "load" {
+                if arguments.len() == 1 {
+                    let filename = if let Node::String(s) = &arguments[0] {
+                        s
+                    } else {
+                        panic!("Invalid argument for load");
+                    };
+                    let input_string =
+                        std::fs::read_to_string(filename).expect("Failed to read input file");
+                    let expressions = parse(&input_string);
+                    for expression in expressions {
+                        eval(&expression, env);
+                    }
+                    return Node::Bool(true);
+                }
+                panic!("Invalid arguments for load");
+            } else if s == "type?" {
+                if arguments.len() == 1 {
+                    match &arguments[0] {
+                        Node::Number(_) => return Node::String("number".to_string()),
+                        Node::String(_) => return Node::String("string".to_string()),
+                        Node::Bool(_) => return Node::String("bool".to_string()),
+                        Node::List(_) => return Node::String("list".to_string()),
+                        Node::Symbol(_) => return Node::String("symbol".to_string()),
+                    }
+                }
+                panic!("Invalid arguments for type?");
+            } else if s == "list" {
+                return Node::List(arguments.to_vec());
+            } else if s == "number->string" {
+                if arguments.len() == 1 {
+                    if let Node::Number(n) = &arguments[0] {
+                        return Node::String(n.to_string());
+                    }
+                }
+                panic!("Invalid arguments for number->string");
+            } else if s == "fold" {
+                if arguments.len() == 3 {
+                    let function = &arguments[0];
+                    let initial_value = &arguments[1];
+                    let list = &arguments[2];
+
+                    if let Node::List(l) = list {
+                        let mut result = initial_value.clone();
+                        for item in l {
+                            result = apply(function, &[result, item.clone()], env);
+                        }
+                        return result;
+                    }
+                }
+                panic!("Invalid arguments for fold");
+            } else if s == "zip" {
+                if arguments.len() == 2 {
+                    let list1 = &arguments[0];
+                    let list2 = &arguments[1];
+
+                    if let (Node::List(l1), Node::List(l2)) =
+                        (list1, list2)
+                    {
+                        let mut zipped = Vec::new();
+                        for (item1, item2) in l1.iter().zip(l2.iter()) {
+                            zipped.push(Node::List(vec![item1.clone(), item2.clone()]));
+                        }
+                        return Node::List(zipped);
+                    }
+                }
+                panic!("Invalid arguments for zip");
+            } else if s == "time-ms" {
+                if arguments.len() == 1 {
+                    let start = std::time::Instant::now();
+                    eval(&arguments[0], env);
+                    let duration = start.elapsed();
+                    return Node::Number(duration.as_millis().try_into().expect("Failed to convert duration"));
+                }
+                panic!("Invalid arguments for time-ms");
+            } else if s == "range" {
+                if arguments.len() == 2 {
+                    if let (Node::Number(start), Node::Number(end)) =
+                        (&arguments[0], &arguments[1])
+                    {
+                        let mut range = Vec::new();
+                        for i in *start..*end {
+                            range.push(Node::Number(i));
+                        }
+                        return Node::List(range);
+                    }
+                } else if arguments.len() == 1 {
+                    if let Node::Number(end) = &arguments[0] {
+                        let mut range = Vec::new();
+                        for i in 0..*end {
+                            range.push(Node::Number(i));
+                        }
+                        return Node::List(range);
+                    }
+                }
+                panic!("Invalid arguments for range");
+            } else if s == "for-each" {
+                if arguments.len() == 2 {
+                    let function = &arguments[0];
+                    let list = &arguments[1];
+
+                    if let Node::List(l) = list {
+                        for item in l {
+                            apply(function, &[item.clone()], env);
+                        }
+                        return Node::Bool(true);
+                    }
+                }
+                panic!("Invalid arguments for for-each");
+            } else if s == "among" {
+                if arguments.len() == 2 {
+                    let list = &arguments[0];
+                    let value = &arguments[1];
+
+                    if let Node::List(l) = list {
+                        for item in l {
+                            if item == value {
+                                return Node::Bool(true);
+                            }
+                        }
+                        return Node::Bool(false);
+                    }
+                }
+                panic!("Invalid arguments for among");
+            } else if s == "map" {
+                if arguments.len() == 2 {
+                    let function = &arguments[0];
+                    let list = &arguments[1];
+
+                    if let Node::List(l) = list {
+                        let mut mapped = Vec::new();
+                        for item in l {
+                            mapped.push(apply(function, &[item.clone()], env));
+                        }
+                        return Node::List(mapped);
+                    }
+                }
+
+                panic!("Invalid arguments for map");
+            } else if s == "version" {
+                return Node::String(format!("Lich version {}", env!("CARGO_PKG_VERSION")).to_string());
+            } else {
+                panic!("Unknown function {s}");
+            }
+        }
+        _ => panic!("Function application not implemented"),
     }
 }
 
