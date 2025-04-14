@@ -82,6 +82,109 @@ impl fmt::Display for Token {
     }
 }
 
+fn is_symbol_char(c: char) -> bool {
+    c.is_alphanumeric() || "!$%&*+-./:<=>?\\^_{}|~".contains(c)
+}
+
+fn is_valid_number(value: &str) -> bool {
+    assert!(
+        !value.is_empty(),
+        "Empty string is not a valid number or symbol"
+    );
+
+    if value == "-" {
+        false
+    } else if value.len() == 1 {
+        value
+            .chars()
+            .next()
+            .expect("Single character")
+            .is_ascii_digit()
+    } else if value[0..1] == *"-" {
+        if value[1..].chars().all(|c| c.is_ascii_digit()) {
+            true
+        } else {
+            false
+        }
+    } else if value.chars().all(|c| c.is_ascii_digit()) {
+        true
+    } else {
+        false
+    }
+}
+
+fn tokenize(source: &str) -> Vec<Token> {
+    let mut tokens = Vec::new();
+    let mut chars = source.char_indices().peekable();
+
+    while let Some((_, c)) = chars.next() {
+        match c {
+            ';' => {
+                while let Some(&(_, next_c)) = chars.peek() {
+                    if next_c == '\n' {
+                        break;
+                    }
+                    chars.next();
+                }
+            }
+            '(' => tokens.push(Token::LParen),
+            ')' => tokens.push(Token::RParen),
+            c if c.is_whitespace() => {} // Skip whitespace
+            '`' => {
+                let mut value = String::new();
+                while let Some(&(_, next_c)) = chars.peek() {
+                    chars.next();
+                    if next_c == '`' {
+                        break;
+                    }
+
+                    value.push(next_c);
+                }
+                tokens.push(Token::String(value.replace("\\n", "\n")));
+            }
+            '"' => {
+                let mut value = String::new();
+                while let Some(&(_, next_c)) = chars.peek() {
+                    chars.next();
+                    if next_c == '"' {
+                        break;
+                    }
+
+                    value.push(next_c);
+                }
+                tokens.push(Token::String(value.replace("\\n", "\n")));
+            }
+            c if is_symbol_char(c) => {
+                let mut value = String::from(c);
+                while let Some(&(_, next_c)) = chars.peek() {
+                    if is_symbol_char(next_c) {
+                        value.push(next_c);
+                        chars.next();
+                    } else {
+                        break;
+                    }
+                }
+
+                // Numbers are a strict subset of symbols, so we check for numbers first
+                if is_valid_number(&value) {
+                    tokens.push(Token::Number(value.parse::<i64>().expect("Failed to parse number")));
+
+                // Booleans are a strict subset of symbols, so we check for booleans next
+                } else if value == "true" {
+                    tokens.push(Token::Bool(true));
+                } else if value == "false" {
+                    tokens.push(Token::Bool(false));
+                } else {
+                    tokens.push(Token::Symbol(value));
+                }
+            }
+            _ => panic!("Unexpected character: {c}, {:?}", c),
+        }
+    }
+
+    tokens
+}
+
 fn main() {
     let mut env = Environment {
         parent: None,
