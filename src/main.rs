@@ -231,102 +231,103 @@ fn parse(input: &str) -> Vec<Node> {
     parse_tokens(&tokens)
 }
 
+fn eval_list(nodes: &[Node], env: &mut Environment) -> Node {
+    if nodes.is_empty() {
+        return Node::List(vec![]);
+    }
+
+    let first = &nodes[0];
+    let rest = &nodes[1..];
+
+    match first {
+        Node::Symbol(s) => {
+            let operator = s.as_str();
+            if operator == "quote" {
+                rest[0].clone()
+            } else if operator == "if" {
+                let condition = eval(&rest[0], env);
+                match condition {
+                    Node::Bool(true) => eval(&rest[1], env),
+                    Node::Bool(false) => eval(&rest[2], env),
+                    _ => panic!("Condition must be a boolean"),
+                }
+            } else if operator == "cond" {
+                for condition in rest {
+                    if let Node::List(conditions) = condition {
+                        if conditions.len() == 2 {
+                            let cond = eval(&conditions[0], env);
+                            if cond == Node::Bool(true) {
+                                return eval(&conditions[1], env);
+                            }
+                        } else {
+                            panic!("Invalid cond clause");
+                        }
+                    } else {
+                        panic!("Invalid cond clause");
+                    }
+                }
+
+                panic!("No true condition found in cond");
+            } else if operator == "define" {
+                let variable = &rest[0];
+                let value = eval(&rest[1], env);
+                env.variables.insert(variable.clone(), value.clone());
+
+                return value;
+            } else if operator == "lambda" {
+                if rest.len() != 2 {
+                    panic!("Invalid arguments for lambda");
+                }
+                let parameters = rest[0].clone();
+                let body = rest[1].clone();
+
+                let lambda =
+                    Node::List(vec![Node::Symbol("lambda".to_string()), parameters, body]);
+                return lambda;
+            } else if operator == "let" {
+                if rest.len() == 2 {
+                    let bindings = &rest[0];
+                    let body = &rest[1];
+
+                    if let Node::List(bindings_list) = bindings {
+                        let mut new_env = Environment {
+                            parent: Some(Box::new(env.clone())),
+                            variables: std::collections::HashMap::new(),
+                        };
+
+                        for binding in bindings_list {
+                            if let Node::List(binding_pair) = binding {
+                                if binding_pair.len() == 2 {
+                                    let variable = &binding_pair[0];
+                                    let value = eval(&binding_pair[1], env);
+                                    new_env.variables.insert(variable.clone(), value);
+                                } else {
+                                    panic!("Invalid binding pair");
+                                }
+                            } else {
+                                panic!("Invalid binding");
+                            }
+                        }
+
+                        return eval(body, &mut new_env);
+                    }
+                }
+                panic!("Invalid arguments for let");
+            } else {
+                let function = env.lookup(first);
+                let arguments = rest.iter().map(|n| eval(n, env)).collect::<Vec<_>>();
+                return apply(&function, &arguments, env);
+            }
+        }
+        _ => panic!("Unknown operator {first:?}"),
+    }
+}
 
 fn eval(node: &Node, env: &mut Environment) -> Node {
     match node {
         Node::Symbol(_) => env.lookup(node),
         Node::Number(_) | Node::String(_) | Node::Bool(_) => node.clone(),
-        Node::List(nodes) => {
-            if nodes.is_empty() {
-                return Node::List(vec![]);
-            }
-
-            let first = &nodes[0];
-            let rest = &nodes[1..];
-
-            match first {
-                Node::Symbol(s) => {
-                    let operator = s.as_str();
-                    if operator == "quote" {
-                        rest[0].clone()
-                    } else if operator == "if" {
-                        let condition = eval(&rest[0], env);
-                        match condition {
-                            Node::Bool(true) => eval(&rest[1], env),
-                            Node::Bool(false) => eval(&rest[2], env),
-                            _ => panic!("Condition must be a boolean"),
-                        }
-                    } else if operator == "cond" {
-                        for condition in rest {
-                            if let Node::List(conditions) = condition {
-                                if conditions.len() == 2 {
-                                    let cond = eval(&conditions[0], env);
-                                    if cond == Node::Bool(true) {
-                                        return eval(&conditions[1], env);
-                                    }
-                                } else {
-                                    panic!("Invalid cond clause");
-                                }
-                            } else {
-                                panic!("Invalid cond clause");
-                            }
-                        }
-
-                        panic!("No true condition found in cond");
-                    } else if operator == "define" {
-                        let variable = &rest[0];
-                        let value = eval(&rest[1], env);
-                        env.variables.insert(variable.clone(), value.clone());
-
-                        return value;
-                    } else if operator == "lambda" {
-                        if rest.len() != 2 {
-                            panic!("Invalid arguments for lambda");
-                        }
-                        let parameters = rest[0].clone();
-                        let body = rest[1].clone();
-
-                        let lambda =
-                            Node::List(vec![Node::Symbol("lambda".to_string()), parameters, body]);
-                        return lambda;
-                    } else if operator == "let" {
-                        if rest.len() == 2 {
-                            let bindings = &rest[0];
-                            let body = &rest[1];
-
-                            if let Node::List(bindings_list) = bindings {
-                                let mut new_env = Environment {
-                                    parent: Some(Box::new(env.clone())),
-                                    variables: std::collections::HashMap::new(),
-                                };
-
-                                for binding in bindings_list {
-                                    if let Node::List(binding_pair) = binding {
-                                        if binding_pair.len() == 2 {
-                                            let variable = &binding_pair[0];
-                                            let value = eval(&binding_pair[1], env);
-                                            new_env.variables.insert(variable.clone(), value);
-                                        } else {
-                                            panic!("Invalid binding pair");
-                                        }
-                                    } else {
-                                        panic!("Invalid binding");
-                                    }
-                                }
-
-                                return eval(body, &mut new_env);
-                            }
-                        }
-                        panic!("Invalid arguments for let");
-                    } else {
-                        let function = env.lookup(first);
-                        let arguments = rest.iter().map(|n| eval(n, env)).collect::<Vec<_>>();
-                        return apply(&function, &arguments, env);
-                    }
-                }
-                _ => panic!("Unknown operator {first:?}"),
-            }
-        }
+        Node::List(nodes) => eval_list(nodes, env),
     }
 }
 
