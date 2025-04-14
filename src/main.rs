@@ -635,9 +635,76 @@ fn main() {
         variables: std::collections::HashMap::new(),
     };
 
+    let symbols = vec![
+        "+",
+        "-",
+        "*",
+        "=",
+        "write",
+        "write-line",
+        "car",
+        "cdr",
+        "cons",
+        "lambda",
+        "begin",
+        "print-env",
+        "nil",
+        "length",
+        "null?",
+        "let",
+        "concat",
+        "load",
+        "type?",
+        "list",
+        "number->string",
+        "fold",
+        "zip",
+        "time-ms",
+        "range",
+        "for-each",
+        "map",
+        "version",
+    ];
+
+    for symbol in symbols {
+        env.variables.insert(
+            Node::Symbol(symbol.to_string()),
+            Node::Symbol(symbol.to_string()),
+        );
+    }
+
     let args = std::env::args().collect::<Vec<_>>();
 
     if args.len() > 1 {
+        let input_file = &args[1];
+        let input_string = std::fs::read_to_string(input_file)
+            .expect("Failed to read input file");
+        let expressions = parse(&input_string);
+
+        for expression in expressions {
+            println!("{GREY}{expression}{NORMAL}");
+            println!("Result: {:?}", eval(&expression, &mut env));
+        }
     } else {
+        loop {
+            use std::io::{self, Write};
+
+            print!("lich> ");
+            io::stdout().flush().expect("Failed to flush stdout");
+
+            let mut input = String::new();
+            io::stdin()
+                .read_line(&mut input)
+                .expect("Failed to read line");
+            let input_string = input.trim().to_string();
+            if input_string == "exit" {
+                break;
+            }
+            let expressions = parse(&input_string);
+            for expression in expressions {
+                let result = eval(&expression, &mut env);
+                println!("{GREY}{result:?}{NORMAL}");
+            }
+        }
     }
 }
