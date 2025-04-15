@@ -1,11 +1,11 @@
 use crate::node::Node;
 use crate::environment::Environment;
-use crate::apply;
+use crate::eval::apply;
 
 //- (test "fold" (fold + 0 (quote (1 2 3))) 6)
 //- (test "fold" (fold + 0 (quote ())) 0)
 //- (test "fold" (fold + 0 (quote (1))) 1)
-pub fn fn_fold(arguments: &[Node], env: &mut Environment) -> Node {
+pub fn fn_fold(arguments: &[Node], env: &mut Environment) -> Result<Node, String> {
     if arguments.len() == 3 {
         let function = &arguments[0];
         let initial_value = &arguments[1];
@@ -14,18 +14,21 @@ pub fn fn_fold(arguments: &[Node], env: &mut Environment) -> Node {
         if let Node::List(l) = list {
             let mut result = initial_value.clone();
             for item in l {
-                result = apply(function, &[result, item.clone()], env);
+                result = apply(function, &[result, item.clone()], env)?;
             }
-            return result;
+            return Ok(result);
         }
     }
-    panic!("Invalid arguments for fold");
+    Err(format!(
+        "Invalid arguments for fold: {:?}",
+        &arguments[0]
+    ))
 }
 
 //- (test "zip" (zip (quote (1 2 3)) (quote (4 5 6))) (quote ((1 4) (2 5) (3 6))))
 //- (test "zip" (zip (quote ()) (quote ())) (quote ()))
 //- (test "zip" (zip (quote (1)) (quote (2))) (quote ((1 2))))
-pub fn fn_zip(arguments: &[Node], _: &mut Environment) -> Node {
+pub fn fn_zip(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
     if arguments.len() == 2 {
         let list1 = &arguments[0];
         let list2 = &arguments[1];
@@ -37,16 +40,19 @@ pub fn fn_zip(arguments: &[Node], _: &mut Environment) -> Node {
             for (item1, item2) in l1.iter().zip(l2.iter()) {
                 zipped.push(Node::List(vec![item1.clone(), item2.clone()]));
             }
-            return Node::List(zipped);
+            return Ok(Node::List(zipped));
         }
     }
-    panic!("Invalid arguments for zip");
+    Err(format!(
+        "Invalid arguments for zip: {:?}",
+        &arguments[0]
+    ))
 }
 
 //- (test "range" (range 1 5) (quote (1 2 3 4)))
 //- (test "range" (range 5) (quote (0 1 2 3 4)))
 //- (test "range" (range 0 0) (quote ()))
-pub fn fn_range(arguments: &[Node], _: &mut Environment) -> Node {
+pub fn fn_range(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
     if arguments.len() == 2 {
         if let (Node::Number(start), Node::Number(end)) =
             (&arguments[0], &arguments[1])
@@ -55,7 +61,7 @@ pub fn fn_range(arguments: &[Node], _: &mut Environment) -> Node {
             for i in *start..*end {
                 range.push(Node::Number(i));
             }
-            return Node::List(range);
+            return Ok(Node::List(range));
         }
     } else if arguments.len() == 1 {
         if let Node::Number(end) = &arguments[0] {
@@ -63,32 +69,38 @@ pub fn fn_range(arguments: &[Node], _: &mut Environment) -> Node {
             for i in 0..*end {
                 range.push(Node::Number(i));
             }
-            return Node::List(range);
+            return Ok(Node::List(range));
         }
     }
-    panic!("Invalid arguments for range");
+    Err(format!(
+        "Invalid arguments for range: {:?}",
+        &arguments[0]
+    ))
 }
 
-pub fn fn_for_each(arguments: &[Node], env: &mut Environment) -> Node {
+pub fn fn_for_each(arguments: &[Node], env: &mut Environment) -> Result<Node, String> {
     if arguments.len() == 2 {
         let function = &arguments[0];
         let list = &arguments[1];
 
         if let Node::List(l) = list {
             for item in l {
-                apply(function, &[item.clone()], env);
+                apply(function, &[item.clone()], env)?;
             }
-            return Node::Bool(true);
+            return Ok(Node::Bool(true));
         }
     }
-    panic!("Invalid arguments for for-each");
+    Err(format!(
+        "Invalid arguments for for-each: {:?}",
+        &arguments[0]
+    ))
 }
 
 //- (define inc (lambda (x) (+ x 1)))
 //- (test "map" (map inc (quote (1 2 3))) (quote (2 3 4)))
 //- (test "map" (map inc (quote ())) (quote ()))
 //- (test "map" (map inc (quote (1))) (quote (2)))
-pub fn fn_map(arguments: &[Node], env: &mut Environment) -> Node {
+pub fn fn_map(arguments: &[Node], env: &mut Environment) -> Result<Node, String> {
     if arguments.len() == 2 {
         let function = &arguments[0];
         let list = &arguments[1];
@@ -96,19 +108,21 @@ pub fn fn_map(arguments: &[Node], env: &mut Environment) -> Node {
         if let Node::List(l) = list {
             let mut mapped = Vec::new();
             for item in l {
-                mapped.push(apply(function, &[item.clone()], env));
+                mapped.push(apply(function, &[item.clone()], env)?);
             }
-            return Node::List(mapped);
+            return Ok(Node::List(mapped));
         }
     }
-
-    panic!("Invalid arguments for map");
+    Err(format!(
+        "Invalid arguments for map: {:?}",
+        &arguments[0]
+    ))
 }
 
 //- (test "filter" (filter even? (quote (1 2 3 4))) (quote (2 4)))
 //- (test "filter" (filter even? (quote ())) (quote ()))
 //- (test "filter" (filter even? (quote (1))) (quote ()))
-pub fn fn_filter(arguments: &[Node], env: &mut Environment) -> Node {
+pub fn fn_filter(arguments: &[Node], env: &mut Environment) -> Result<Node, String> {
     if arguments.len() == 2 {
         let function = &arguments[0];
         let list = &arguments[1];
@@ -116,17 +130,21 @@ pub fn fn_filter(arguments: &[Node], env: &mut Environment) -> Node {
         if let Node::List(l) = list {
             let mut filtered = Vec::new();
             for item in l {
-                if let Node::Bool(b) = apply(function, &[item.clone()], env) {
+                if let Node::Bool(b) = apply(function, &[item.clone()], env)? {
                     if b {
                         filtered.push(item.clone());
                     }
                 } else {
-                    panic!("Function did not return a boolean value");
+                    return Err(format!(
+                        "Function did not return a boolean value: {item:?}",
+                    ));
                 }
             }
-            return Node::List(filtered);
+            return Ok(Node::List(filtered));
         }
     }
-
-    panic!("Invalid arguments for filter");
+    Err(format!(
+        "Invalid arguments for filter: {:?}",
+        &arguments[0]
+    ))
 }

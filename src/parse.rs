@@ -28,8 +28,8 @@ macro_rules! is_symbol_char {
     };
 }
 
-pub fn parse(input: &str) -> Vec<Node> {
-    let tokens = tokenize(input);
+pub fn parse(input: &str) -> Result<Vec<Node>, String> {
+    let tokens = tokenize(input)?;
 
     let mut stack = Vec::new();
     let mut current_list = Vec::new();
@@ -46,7 +46,7 @@ pub fn parse(input: &str) -> Vec<Node> {
                     current_list = last_list;
                     current_list.push(list_node);
                 } else {
-                    panic!("Unmatched closing parenthesis");
+                    return Err("Unmatched closing parenthesis".to_string());
                 }
             }
             Token::Symbol(s) => current_list.push(Node::Symbol(s.clone())),
@@ -56,7 +56,7 @@ pub fn parse(input: &str) -> Vec<Node> {
         }
     }
 
-    current_list
+    Ok(current_list)
 }
 
 fn is_valid_number(value: &str) -> bool {
@@ -80,7 +80,7 @@ fn is_valid_number(value: &str) -> bool {
     }
 }
 
-fn tokenize(source: &str) -> Vec<Token> {
+fn tokenize(source: &str) -> Result<Vec<Token>, String> {
     let mut tokens = Vec::new();
     let mut chars = source.char_indices().peekable();
 
@@ -145,9 +145,9 @@ fn tokenize(source: &str) -> Vec<Token> {
                     tokens.push(Token::Symbol(value));
                 }
             }
-            _ => panic!("Unexpected character: {c}, {c:?}"),
+            _ => return Err(format!("Unexpected character: {c}")),
         }
     }
 
-    tokens
+    Ok(tokens)
 }

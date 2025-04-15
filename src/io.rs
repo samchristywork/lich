@@ -3,40 +3,40 @@ use crate::environment::Environment;
 use crate::eval;
 use crate::parse::parse;
 
-pub fn fn_print_env(_: &[Node], env: &mut Environment) -> Node {
+pub fn fn_print_env(_: &[Node], env: &mut Environment) -> Result<Node, String> {
     println!("{env}");
-    Node::Bool(true)
+    Ok(Node::Bool(true))
 }
 
-pub fn fn_load(arguments: &[Node], env: &mut Environment) -> Node {
+pub fn fn_load(arguments: &[Node], env: &mut Environment) -> Result<Node, String> {
     if arguments.len() == 1 {
         let Node::Text(filename) = &arguments[0] else {
-            panic!("Invalid argument for load");
+            return Err("Invalid argument for load".to_string());
         };
-        let input_string =
-            std::fs::read_to_string(filename).expect("Failed to read input file");
-        let expressions = parse(&input_string);
+        let input_string = std::fs::read_to_string(filename)
+            .map_err(|_| format!("Failed to read file: {filename}"))?;
+        let expressions = parse(&input_string)?;
         for expression in expressions {
-            eval(&expression, env);
+            eval(&expression, env)?;
         }
-        return Node::Bool(true);
+        return Ok(Node::Bool(true));
     }
-    panic!("Invalid arguments for load");
+    Err("Invalid arguments for load".to_string())
 }
 
-pub fn fn_write(arguments: &[Node], _: &mut Environment) -> Node {
+pub fn fn_write(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
     for arg in arguments {
         print!("{arg}");
     }
 
-    Node::Bool(true)
+    Ok(Node::Bool(true))
 }
 
-pub fn fn_write_line(arguments: &[Node], _: &mut Environment) -> Node {
+pub fn fn_write_line(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
     for arg in arguments {
         print!("{arg}");
     }
     println!();
 
-    Node::Bool(true)
+    Ok(Node::Bool(true))
 }

@@ -4,94 +4,101 @@ use crate::environment::Environment;
 //- (test "car" (car (quote (1 2 3))) 1)
 //- (test "car" (car (quote ())) ())
 //- (test "car" (car (quote (1))) 1)
-pub fn fn_car(arguments: &[Node], _: &mut Environment) -> Node {
+pub fn fn_car(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
     if arguments.len() == 1 {
         if let Node::List(list) = &arguments[0] {
             if list.is_empty() {
-                return Node::List(vec![]);
+                return Ok(Node::List(vec![]));
             }
-            return list[0].clone();
+            return Ok(list[0].clone());
         }
     }
-    panic!("Invalid arguments for car");
+    Err(format!("Invalid arguments for car: {:?}", &arguments[0]))
 }
 
 //- (test "cdr" (cdr (quote (1 2 3))) (quote (2 3)))
 //- (test "cdr" (cdr (quote ())) ())
 //- (test "cdr" (cdr (quote (1))) ())
-pub fn fn_cdr(arguments: &[Node], _: &mut Environment) -> Node {
+pub fn fn_cdr(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
     if arguments.len() == 1 {
         if let Node::List(list) = &arguments[0] {
             if list.len() > 1 {
-                return Node::List(list[1..].to_vec());
+                return Ok(Node::List(list[1..].to_vec()));
             } else if list.len() <= 1 {
-                return Node::List(vec![]);
+                return Ok(Node::List(vec![]));
             }
         }
     }
-    panic!("Invalid arguments for cdr");
+    Err("Invalid arguments for cdr".to_string())
 }
 
 //- (test "cons" (cons 1 (quote (2 3))) (quote (1 2 3)))
 //- (test "cons" (cons 1 (quote ())) (quote (1)))
 //- (test "cons" (cons (quote (1)) (quote (2))) (quote ((1) 2)))
-pub fn fn_cons(arguments: &[Node], _: &mut Environment) -> Node {
+pub fn fn_cons(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
     if arguments.len() == 2 {
         if let Node::List(list) = &arguments[1] {
             let mut new_list = vec![arguments[0].clone()];
             new_list.extend_from_slice(list);
-            return Node::List(new_list);
+            return Ok(Node::List(new_list));
         }
     }
-    panic!("Invalid arguments for cons");
+    Err("Invalid arguments for cons".to_string())
 }
 
 //- (test "length" (length (quote (1 2 3))) 3)
 //- (test "length" (length (quote ())) 0)
 //- (test "length" (length (quote (1))) 1)
-pub fn fn_length(arguments: &[Node], _: &mut Environment) -> Node {
+pub fn fn_length(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
     if arguments.len() == 1 {
         if let Node::List(list) = &arguments[0] {
-            return Node::Number(
-                i64::try_from(list.len()).expect("Failed to convert length"),
-            );
+            let n = i64::try_from(list.len());
+            if let Ok(n) = n {
+                return Ok(Node::Number(n));
+            }
+            return Err("Failed to convert length".to_string());
         }
     }
-    panic!("Invalid arguments for length: {:?}", &arguments[0]);
+    Err(format!("Invalid arguments for length: {:?}", &arguments[0]))
 }
 
 //- (test "null?" (null? (quote ())) true)
 //- (test "null?" (null? (quote (1))) false)
 //- (test "null?" (null? (quote "foo")) false)
-pub fn fn_is_null(arguments: &[Node], _: &mut Environment) -> Node {
+pub fn fn_is_null(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
     if arguments.len() == 1 {
         if let Node::List(list) = &arguments[0] {
-            return Node::Bool(list.is_empty());
+            return Ok(Node::Bool(list.is_empty()));
         }
 
-        return Node::Bool(false);
+        return Ok(Node::Bool(false));
     }
-    panic!("Invalid arguments for null?");
+    Err("Invalid arguments for null?".to_string())
 }
 
 //- (test "list" (list 1 2 3) (quote (1 2 3)))
 //- (test "list" (list) (quote ()))
 //- (test "list" (list 1) (quote (1)))
-pub fn fn_list(arguments: &[Node], _: &mut Environment) -> Node {
-    Node::List(arguments.to_vec())
+pub fn fn_list(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
+    Ok(Node::List(arguments.to_vec()))
 }
 
 //- (test "last" (last (quote (1 2 3))) 3)
 //- (test "last" (last (quote ())) ())
 //- (test "last" (last (quote (1))) 1)
-pub fn fn_last(arguments: &[Node], _: &mut Environment) -> Node {
+pub fn fn_last(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
     if arguments.len() == 1 {
         if let Node::List(list) = &arguments[0] {
             if list.is_empty() {
-                return Node::List(vec![]);
+                return Ok(Node::List(vec![]));
             }
-            return list.last().expect("Failed to get last element").clone();
+            let last = list.last();
+            if let Some(last) = last {
+                return Ok(last.clone());
+            }
+
+            return Err("Failed to get last element".to_string());
         }
     }
-    panic!("Invalid arguments for last");
+    Err("Invalid arguments for last".to_string())
 }

@@ -18,8 +18,11 @@ impl std::fmt::Display for Environment {
         keys.sort();
 
         for key in keys {
-            let value = self.variables.get(key).expect("Key not found");
-            writeln!(f, "  {key} => {value}")?;
+            let value = self.variables.get(key);
+            match value {
+                Some(value) => writeln!(f, "  {key} => {value}")?,
+                None => writeln!(f, "  {key} => <not found>")?,
+            }
         }
 
         Ok(())
@@ -41,7 +44,7 @@ impl Environment {
     pub fn add_function(
         &mut self,
         name: &str,
-        function: fn(&[Node], &mut Self) -> Node,
+        function: fn(&[Node], &mut Self) -> Result<Node, String>,
     ) {
         self.variables.insert(
             Node::Symbol(name.to_string()),

@@ -4,3 +4,4 @@ version = "2025.4.13"
 edition = "2024"
 
 [dependencies]
+regex = "1.11.1"

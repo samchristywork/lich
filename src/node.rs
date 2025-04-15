@@ -7,7 +7,8 @@ pub enum Node {
     Text(String),
     Bool(bool),
     List(Vec<Node>),
-    Function(fn(&[Node], &mut Environment) -> Node),
+    Function(fn(&[Node], &mut Environment) -> Result<Node, String>),
+    Regex(String), // TODO: It would be more efficient to store a compiled regex
 }
 
 impl std::fmt::Display for Node {
@@ -30,6 +31,7 @@ impl std::fmt::Display for Node {
                 result.push(')');
                 result
             }
+            Self::Regex(r) => format!("regex({r})"),
         };
 
         if res.is_empty() {

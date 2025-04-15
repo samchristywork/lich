@@ -1,199 +1,186 @@
-pub mod list;
-pub mod conversion;
-pub mod io;
 pub mod arithmetic;
 pub mod compare;
+pub mod conversion;
 pub mod environment;
+pub mod eval;
+pub mod io;
+pub mod list;
 pub mod node;
-pub mod util;
-pub mod string;
-pub mod sequence;
-pub mod system;
 pub mod parse;
+pub mod regex;
+pub mod sequence;
+pub mod string;
+pub mod system;
+pub mod util;
+pub mod web;
 
 use std::io::Write;
+use std::io::BufRead;
 use crate::node::Node;
 use crate::environment::Environment;
 use crate::parse::parse;
+use crate::eval::eval;
 
 const GREY: &str = "\x1b[90m";
 const NORMAL: &str = "\x1b[0m";
 
-fn eval(node: &Node, env: &mut Environment) -> Node {
-    match node {
-        Node::Symbol(_) => env.lookup(node).expect(format!("Undefined variable: {node:?}").as_str()),
-        Node::Number(_) | Node::Text(_) | Node::Bool(_) | Node::Function(_) => node.clone(),
-        Node::List(nodes) => eval_list(nodes, env),
+fn evaluate_version(env: &mut Environment) -> Result<Node, String> {
+    let input = "(version)";
+    let expressions = parse(input).map_err(|e| {
+        format!("Failed to parse input: {e}")
+    })?;
+
+    let result = eval(&expressions[0], env);
+    match result {
+        Ok(node) => {
+            Ok(node)
+        }
+        Err(e) => {
+            Err(e)
+        }
     }
 }
 
-fn eval_if(rest: &[Node], env: &mut Environment) -> Node {
-    let condition = eval(&rest[0], env);
-    match condition {
-        Node::Bool(true) => eval(&rest[1], env),
-        Node::Bool(false) => eval(&rest[2], env),
-        _ => panic!("Condition must be a boolean"),
+fn print_version(env: &mut Environment) {
+    match evaluate_version(env) {
+        Ok(node) => {
+            println!("{node}");
+        }
+        Err(e) => {
+            eprintln!("Failed to evaluate version: {e}");
+        }
     }
 }
 
-fn eval_cond(rest: &[Node], env: &mut Environment) -> Node {
-    for condition in rest {
-        if let Node::List(conditions) = condition {
-            if conditions.len() == 2 {
-                let cond = eval(&conditions[0], env);
-                if cond == Node::Bool(true) {
-                    return eval(&conditions[1], env);
+fn repl(env: &mut Environment, server: bool) -> Result<(), String> {
+    if server {
+        let socket_string = "localhost:8080";
+
+        let listener = std::net::TcpListener::bind(socket_string).map_err(|e| {
+            format!("Failed to bind to socket: {e}")
+        })?;
+
+        println!("Server started on {socket_string}");
+        loop {
+            let (mut stream, addr) = listener.accept().map_err(|e| {
+                format!("Failed to accept connection: {e}")
+            })?;
+            println!("Client connected: {addr}");
+            let mut reader = std::io::BufReader::new(stream.try_clone().map_err(|e| {
+                format!("Failed to clone stream: {e}")
+            })?);
+
+            let mut input = String::new();
+            while reader.read_line(&mut input).map_err(|e| {
+                format!("Failed to read line: {e}")
+            })? > 0 {
+                let input_string = input.trim().to_string();
+                match parse(&input_string) {
+                    Ok(expressions) => {
+                        for expression in expressions {
+                            let result = eval(&expression, env);
+                            eprintln!("{GREY}{result:?}{NORMAL}");
+
+                            // Send the result back to the client
+                            let response = format!("{GREY}{result:?}{NORMAL}\n");
+                            stream.write_all(response.as_bytes()).map_err(|e| {
+                                format!("Failed to write to stream: {e}")
+                            })?;
+                        }
+                    }
+                    Err(e) => {
+                        eprintln!("Failed to parse input: {input_string}\n{e}");
+                    }
+                }
+                input.clear();
+            }
+        }
+    } else {
+        match evaluate_version(env) {
+            Ok(node) => {
+                println!("{node}");
+            }
+            Err(e) => {
+                eprintln!("Failed to evaluate version: {e}");
+            }
+        }
+
+        loop {
+            print!("lich> ");
+            std::io::stdout().flush().map_err(|e| {
+                format!("Failed to flush stdout: {e}")
+            })?;
+
+            let mut input = String::new();
+            std::io::stdin()
+                .read_line(&mut input)
+                .map_err(|e| {
+                    format!("Failed to read line: {e}")
+                })?;
+            if input.is_empty() {
+                println!();
+                break;
+            }
+            let input_string = input.trim().to_string();
+            if input_string == "exit" {
+                break;
+            }
+
+            if let Ok(expressions) = parse(&input_string) {
+                for expression in expressions {
+                    let result = eval(&expression, env);
+                    eprintln!("{GREY}{result:?}{NORMAL}");
                 }
             } else {
-                panic!("Invalid cond clause");
+                eprintln!("Failed to parse input: {input_string}");
             }
-        } else {
-            panic!("Invalid cond clause");
         }
     }
 
-    panic!("No true condition found in cond");
+    Ok(())
 }
 
-fn eval_define(rest: &[Node], env: &mut Environment) -> Node {
-    let variable = &rest[0];
-    let value = eval(&rest[1], env);
-    env.variables.insert(variable.clone(), value.clone());
+fn process_files(positional_args: &Vec<&String>, env: &mut Environment, verbose: bool) {
+    for arg in positional_args {
+        let input_string = std::fs::read_to_string(arg)
+            .expect("Failed to read input file");
 
-    value
-}
-
-fn eval_lambda(rest: &[Node]) -> Node {
-    assert!(rest.len() == 2, "Invalid arguments for lambda");
-    let parameters = rest[0].clone();
-    let body = rest[1].clone();
-
-    Node::List(vec![Node::Symbol("lambda".to_string()), parameters, body])
-}
-
-fn eval_let(rest: &[Node], env: &mut Environment) -> Node {
-    if rest.len() == 2 {
-        let bindings = &rest[0];
-        let body = &rest[1];
-
-        if let Node::List(bindings_list) = bindings {
-            let mut new_env = Environment {
-                parent: Some(Box::new(env.clone())),
-                variables: std::collections::HashMap::new(),
-            };
-
-            for binding in bindings_list {
-                if let Node::List(binding_pair) = binding {
-                    if binding_pair.len() == 2 {
-                        let variable = &binding_pair[0];
-                        let value = eval(&binding_pair[1], env);
-                        new_env.variables.insert(variable.clone(), value);
+        match parse(&input_string) {
+            Ok(expressions) => {
+                for expression in expressions {
+                    if verbose {
+                        eprintln!("{GREY}{expression}{NORMAL}");
+                        eprintln!("Result: {:?}", eval(&expression, env));
                     } else {
-                        panic!("Invalid binding pair");
-                    }
-                } else {
-                    panic!("Invalid binding");
-                }
-            }
-
-            return eval(body, &mut new_env);
-        }
-    }
-
-    panic!("Invalid arguments for let");
-}
-
-fn eval_let_restricted(rest: &[Node], env: &mut Environment) -> Node {
-    if rest.len() == 2 {
-        let bindings = &rest[0];
-        let body = &rest[1];
-
-        if let Node::List(bindings_list) = bindings {
-            let mut new_env = Environment {
-                parent: None,
-                variables: std::collections::HashMap::new(),
-            };
-
-            for binding in bindings_list {
-                if let Node::List(binding_pair) = binding {
-                    if binding_pair.len() == 1 {
-                        let variable = &binding_pair[0];
-                        let value = eval(&binding_pair[0], env);
-                        new_env.variables.insert(variable.clone(), value);
-                    }else if binding_pair.len() == 2 {
-                        let variable = &binding_pair[0];
-                        let value = eval(&binding_pair[1], env);
-                        new_env.variables.insert(variable.clone(), value);
-                    } else {
-                        panic!("Invalid binding pair");
-                    }
-                } else {
-                    panic!("Invalid binding");
-                }
-            }
-
-            return eval(body, &mut new_env);
-        }
-    }
-
-    panic!("Invalid arguments for let");
-}
-
-fn eval_list(nodes: &[Node], env: &mut Environment) -> Node {
-    if nodes.is_empty() {
-        return Node::List(vec![]);
-    }
-
-    let first = &nodes[0];
-    let rest = &nodes[1..];
-
-    match first {
-        Node::Symbol(s) => {
-            let operator = s.as_str();
-
-            match operator {
-                "quote" => rest[0].clone(),
-                "if" => eval_if(rest, env),
-                "cond" => eval_cond(rest, env),
-                "define" => eval_define(rest, env),
-                "lambda" => eval_lambda(rest),
-                "let" => eval_let(rest, env),
-                "let-restricted" => eval_let_restricted(rest, env),
-                _ => {
-                    let function = env.lookup(first).expect(format!("Undefined function: {first:?}").as_str());
-                    let arguments = rest.iter().map(|n| eval(n, env)).collect::<Vec<_>>();
-                    apply(&function, &arguments, env)
-                }
-            }
-        }
-        _ => panic!("Unknown operator {first:?}"),
-    }
-}
-
-
-fn apply(function: &Node, arguments: &[Node], env: &mut Environment) -> Node {
-    match function {
-        Node::Function(f) => f(arguments, env),
-        Node::List(nodes) => {
-            if let Node::Symbol(s) = &nodes[0] {
-                if s == "lambda" {
-                    if let Node::List(params) = &nodes[1] {
-                        assert!((params.len() == arguments.len()), "Argument count mismatch");
-                        let mut new_env = Environment {
-                            parent: Some(Box::new(env.clone())),
-                            variables: std::collections::HashMap::new(),
-                        };
-                        for (param, arg) in params.iter().zip(arguments) {
-                            new_env.variables.insert(param.clone(), arg.clone());
+                        let result = eval(&expression, env);
+                        if let Err(e) = result {
+                            eprintln!("{GREY}{e}{NORMAL}");
+                            return;
                         }
-                        return eval(&nodes[2], &mut new_env);
                     }
                 }
             }
-            panic!("Function application not implemented");
+            Err(e) => {
+                eprintln!("Failed to parse input file: {arg}\n{e}");
+                return;
+            }
         }
-        _ => panic!("Function application not implemented"),
     }
+}
+
+macro_rules! get_flag {
+    ($args:expr, $flag:expr, $long_flag:expr) => {
+        $args.iter().any(|arg| *arg == $flag || *arg == $long_flag)
+    };
+}
+
+fn usage() {
+    println!("Usage: lich [options] [file1 file2 ...]");
+    println!("Options:");
+    println!("  -h, --help       Show this help message");
+    println!("  -v, --verbose    Enable verbose mode");
+    println!("  -V, --version    Show version information");
+    println!("  -s, --server     Start in server mode");
 }
 
 fn main() {
@@ -201,7 +188,6 @@ fn main() {
         parent: None,
         variables: std::collections::HashMap::new(),
     };
-
 
     // Arithmetic
     env.add_function("+", arithmetic::fn_add);
@@ -256,7 +242,6 @@ fn main() {
     env.add_function("begin", util::fn_begin);
     env.add_function("type?", util::fn_type);
     env.add_function("time-ms", util::fn_time_ms);
-    env.add_function("among", util::fn_among);
 
     // System
     env.add_function("system", system::fn_system);
@@ -273,47 +258,26 @@ fn main() {
         .filter(|arg| !arg.starts_with('-'))
         .collect::<Vec<_>>();
 
-    let verbose = flag_args
-        .iter()
-        .any(|arg| arg == &"-v" || arg == &"--verbose");
+    let server_flag = get_flag!(flag_args, "-s", "--server");
+    let help_flag = get_flag!(flag_args, "-h", "--help");
+    let verbose_flag = get_flag!(flag_args, "-v", "--verbose");
+    let version_flag = get_flag!(flag_args, "-V", "--version");
+
+    if version_flag {
+        print_version(&mut env);
+        return;
+    }
+
+    if help_flag {
+        print_version(&mut env);
+        println!();
+        usage();
+        return;
+    }
 
     if positional_args.len() > 1 {
-        positional_args
-            .iter()
-            .skip(1)
-            .for_each(|arg| {
-                let input_string = std::fs::read_to_string(arg)
-                    .expect("Failed to read input file");
-                let expressions = parse(&input_string);
-
-                for expression in expressions {
-                    if verbose {
-                        eprintln!("{GREY}{expression}{NORMAL}");
-                        eprintln!("Result: {:?}", eval(&expression, &mut env));
-                    } else {
-                        eval(&expression, &mut env);
-                    }
-                }
-            });
+        process_files(&positional_args.into_iter().skip(1).collect(), &mut env, verbose_flag);
     } else {
-        loop {
-            print!("lich> ");
-            std::io::stdout().flush().expect("Failed to flush stdout");
-
-            let mut input = String::new();
-            std::io::stdin()
-                .read_line(&mut input)
-                .expect("Failed to read line");
-            let input_string = input.trim().to_string();
-            if input_string == "exit" {
-                break;
-            }
-
-            let expressions = parse(&input_string);
-            for expression in expressions {
-                let result = eval(&expression, &mut env);
-                eprintln!("{GREY}{result:?}{NORMAL}");
-            }
-        }
+        repl(&mut env, server_flag).expect("Failed to start REPL");
     }
 }
