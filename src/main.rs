@@ -248,6 +248,12 @@ fn main() {
     env.add_function("version", system::fn_version);
     env.add_function("exit", system::fn_exit);
 
+    // Regex
+    env.add_function("regex", regex::fn_regex);
+    env.add_function("regex-match", regex::fn_regex_match);
+    env.add_function("regex-replace", regex::fn_regex_replace);
+    env.add_function("regex-split", regex::fn_regex_split);
+
     let args = std::env::args().collect::<Vec<_>>();
     let flag_args = args
         .iter()
