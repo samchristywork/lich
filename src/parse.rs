@@ -22,6 +22,23 @@ impl std::fmt::Display for Token {
     }
 }
 
+fn parens_are_balanced(tokens: &Vec<Token>) -> bool {
+    let mut count = 0;
+    for token in tokens {
+        match token {
+            Token::LParen => count += 1,
+            Token::RParen => count -= 1,
+            _ => {},
+        }
+
+        if count < 0 {
+            return false;
+        }
+    }
+
+    count == 0
+}
+
 macro_rules! is_symbol_char {
     ($c:expr) => {
         $c.is_alphanumeric() || "!$%&*+-./:<=>?\\^_{}|~".contains($c)
@@ -30,6 +47,10 @@ macro_rules! is_symbol_char {
 
 pub fn parse(input: &str) -> Result<Vec<Node>, String> {
     let tokens = tokenize(input)?;
+
+    if !parens_are_balanced(&tokens) {
+        return Err("Missing parenthesis".to_string());
+    }
 
     let mut stack = Vec::new();
     let mut current_list = Vec::new();
