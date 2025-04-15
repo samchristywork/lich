@@ -120,25 +120,35 @@ fn tokenize(source: &str) -> Result<Vec<Token>, String> {
             c if c.is_whitespace() => {} // Skip whitespace
             '`' => {
                 let mut value = String::new();
+                let mut found_quote = false;
                 while let Some(&(_, next_c)) = chars.peek() {
                     chars.next();
                     if next_c == '`' {
+                        found_quote = true;
                         break;
                     }
 
                     value.push(next_c);
                 }
+                if !found_quote {
+                    return Err("Missing backquote.".to_string());
+                }
                 tokens.push(Token::Text(value.replace("\\n", "\n")));
             }
             '"' => {
                 let mut value = String::new();
+                let mut found_quote = false;
                 while let Some(&(_, next_c)) = chars.peek() {
                     chars.next();
                     if next_c == '"' {
+                        found_quote = true;
                         break;
                     }
 
                     value.push(next_c);
+                }
+                if !found_quote {
+                    return Err("Missing quote.".to_string());
                 }
                 tokens.push(Token::Text(value.replace("\\n", "\n")));
             }
