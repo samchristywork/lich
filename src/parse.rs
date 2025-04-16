@@ -80,25 +80,25 @@ pub fn parse(input: &str) -> Result<Vec<Node>, String> {
     Ok(current_list)
 }
 
-fn is_valid_number(value: &str) -> bool {
+fn is_valid_number(value: &str) -> Result<bool, String> {
     assert!(
         !value.is_empty(),
         "Empty string is not a valid number or symbol"
     );
 
-    if value == "-" {
+    Ok(if value == "-" {
         false
     } else if value.len() == 1 {
         value
             .chars()
             .next()
-            .expect("Single character")
+            .ok_or("Could not parse number".to_string())?
             .is_ascii_digit()
     } else if value[0..1] == *"-" {
         value[1..].chars().all(|c| c.is_ascii_digit())
     } else {
         value.chars().all(|c| c.is_ascii_digit())
-    }
+    })
 }
 
 fn tokenize(source: &str) -> Result<Vec<Token>, String> {
@@ -164,7 +164,7 @@ fn tokenize(source: &str) -> Result<Vec<Token>, String> {
                 }
 
                 // Numbers are a strict subset of symbols, so we check for numbers first
-                if is_valid_number(&value) {
+                if is_valid_number(&value)? {
                     tokens.push(Token::Number(value.parse::<i64>().expect("Failed to parse number")));
 
                 // Booleans are a strict subset of symbols, so we check for booleans next
