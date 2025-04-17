@@ -1,27 +1,20 @@
-use crate::node::Node;
 use crate::environment::Environment;
+use crate::node::Node;
 
 //- (test "concat" (concat (quote (1 2)) (quote (3 4))) (quote (1 2 3 4)))
 //- (test "concat" (concat "Foo" "Bar") "FooBar")
 //- (test "concat" (concat (quote ()) (quote (1))) (quote (1)))
 pub fn fn_concat(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
     if arguments.len() == 2 {
-        if let (Node::Text(s1), Node::Text(s2)) =
-            (&arguments[0], &arguments[1])
-        {
+        if let (Node::Text(s1), Node::Text(s2)) = (&arguments[0], &arguments[1]) {
             return Ok(Node::Text(format!("{s1}{s2}")));
-        } else if let (Node::List(l1), Node::List(l2)) =
-            (&arguments[0], &arguments[1])
-        {
+        } else if let (Node::List(l1), Node::List(l2)) = (&arguments[0], &arguments[1]) {
             let mut new_list = l1.clone();
             new_list.extend_from_slice(l2);
             return Ok(Node::List(new_list));
         }
     }
-    Err(format!(
-        "Invalid arguments for concat: {:?}",
-        &arguments[0]
-    ))
+    Err(format!("Invalid arguments for concat: {:?}", &arguments[0]))
 }
 
 //- (test "split" (split "," "foo,bar,baz") (quote ("foo" "bar" "baz")))
@@ -29,17 +22,15 @@ pub fn fn_concat(arguments: &[Node], _: &mut Environment) -> Result<Node, String
 //- (test "split" (split "," "") (quote ("")))
 pub fn fn_split(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
     if arguments.len() == 2 {
-        if let (Node::Text(delimiter), Node::Text(text)) =
-            (&arguments[0], &arguments[1])
-        {
-            let parts: Vec<_> = text.split(delimiter).map(|s| Node::Text(s.to_string())).collect();
+        if let (Node::Text(delimiter), Node::Text(text)) = (&arguments[0], &arguments[1]) {
+            let parts: Vec<_> = text
+                .split(delimiter)
+                .map(|s| Node::Text(s.to_string()))
+                .collect();
             return Ok(Node::List(parts));
         }
     }
-    Err(format!(
-        "Invalid arguments for split: {:?}",
-        &arguments[0]
-    ))
+    Err(format!("Invalid arguments for split: {:?}", &arguments[0]))
 }
 
 //- (test "strip" (strip " foo ") "foo")
@@ -51,10 +42,7 @@ pub fn fn_strip(arguments: &[Node], _: &mut Environment) -> Result<Node, String>
             return Ok(Node::Text(s.trim().to_string()));
         }
     }
-    Err(format!(
-        "Invalid arguments for strip: {:?}",
-        &arguments[0]
-    ))
+    Err(format!("Invalid arguments for strip: {:?}", &arguments[0]))
 }
 
 //- (test "join" (join "," (quote ("foo" "bar" "baz"))) "foo,bar,baz")
@@ -62,21 +50,16 @@ pub fn fn_strip(arguments: &[Node], _: &mut Environment) -> Result<Node, String>
 //- (test "join" (join "," (quote ())) "")
 pub fn fn_join(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
     if arguments.len() == 2 {
-        if let (Node::Text(delimiter), Node::List(list)) =
-            (&arguments[0], &arguments[1])
-        {
+        if let (Node::Text(delimiter), Node::List(list)) = (&arguments[0], &arguments[1]) {
             let joined = list
                 .iter()
-                .map(|node| node.to_string())
+                .map(std::string::ToString::to_string)
                 .collect::<Vec<_>>()
                 .join(delimiter);
             return Ok(Node::Text(joined));
         }
     }
-    Err(format!(
-        "Invalid arguments for join: {:?}",
-        &arguments[0]
-    ))
+    Err(format!("Invalid arguments for join: {:?}", &arguments[0]))
 }
 
 //- (test "index-of" (index-of "foo" "foobar") 0)
@@ -84,13 +67,10 @@ pub fn fn_join(arguments: &[Node], _: &mut Environment) -> Result<Node, String> 
 //- (test "index-of" (index-of "baz" "foobar") -1)
 pub fn fn_index_of(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
     if arguments.len() == 2 {
-        if let (Node::Text(substring), Node::Text(text)) =
-            (&arguments[0], &arguments[1])
-        {
-            return match text.find(substring) {
-                Some(n) => Ok(Node::Number(n as i64)),
-                None => Ok(Node::Number(-1)),
-            }
+        if let (Node::Text(substring), Node::Text(text)) = (&arguments[0], &arguments[1]) {
+            return text
+                .find(substring)
+                .map_or(Ok(Node::Number(-1)), |n| Ok(Node::Number(n as i64)));
         }
     }
     Err(format!(
@@ -144,10 +124,7 @@ pub fn fn_upper(arguments: &[Node], _: &mut Environment) -> Result<Node, String>
             return Ok(Node::Text(s.to_uppercase()));
         }
     }
-    Err(format!(
-        "Invalid arguments for upper: {:?}",
-        &arguments[0]
-    ))
+    Err(format!("Invalid arguments for upper: {:?}", &arguments[0]))
 }
 
 //- (test "lower" (lower "foo") "foo")
@@ -159,8 +136,5 @@ pub fn fn_lower(arguments: &[Node], _: &mut Environment) -> Result<Node, String>
             return Ok(Node::Text(s.to_lowercase()));
         }
     }
-    Err(format!(
-        "Invalid arguments for lower: {:?}",
-        &arguments[0]
-    ))
+    Err(format!("Invalid arguments for lower: {:?}", &arguments[0]))
 }

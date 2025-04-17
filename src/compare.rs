@@ -1,5 +1,5 @@
-use crate::node::Node;
 use crate::environment::Environment;
+use crate::node::Node;
 
 //- (test "=" (= 1 2) false)
 //- (test "=" (= "foo" "bar") false)
@@ -8,7 +8,10 @@ pub fn fn_eq(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
     if arguments.len() == 2 {
         return Ok(Node::Bool(arguments[0] == arguments[1]));
     }
-    Err(format!("Invalid arguments for equality check: {:?}", &arguments[0]))
+    Err(format!(
+        "Invalid arguments for equality check: {:?}",
+        &arguments[0]
+    ))
 }
 
 //- (test "<" (< 1 2) true)
@@ -18,7 +21,10 @@ pub fn fn_less_than(arguments: &[Node], _: &mut Environment) -> Result<Node, Str
     if arguments.len() == 2 {
         return Ok(Node::Bool(arguments[0] < arguments[1]));
     }
-    Err(format!("Invalid arguments for less than check: {:?}", &arguments[0]))
+    Err(format!(
+        "Invalid arguments for less than check: {:?}",
+        &arguments[0]
+    ))
 }
 
 //- (test ">" (> 1 2) false)
@@ -28,7 +34,10 @@ pub fn fn_greater_than(arguments: &[Node], _: &mut Environment) -> Result<Node, 
     if arguments.len() == 2 {
         return Ok(Node::Bool(arguments[0] > arguments[1]));
     }
-    Err(format!("Invalid arguments for greater than check: {:?}", &arguments[0]))
+    Err(format!(
+        "Invalid arguments for greater than check: {:?}",
+        &arguments[0]
+    ))
 }
 
 //- (test "<=" (<= 1 2) true)

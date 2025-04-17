@@ -28,7 +28,7 @@ fn parens_are_balanced(tokens: &Vec<Token>) -> bool {
         match token {
             Token::LParen => count += 1,
             Token::RParen => count -= 1,
-            _ => {},
+            _ => {}
         }
 
         if count < 0 {
@@ -92,7 +92,7 @@ fn is_valid_number(value: &str) -> Result<bool, String> {
         value
             .chars()
             .next()
-            .ok_or("Could not parse number".to_string())?
+            .ok_or_else(|| "Could not parse number".to_string())?
             .is_ascii_digit()
     } else if value[0..1] == *"-" {
         value[1..].chars().all(|c| c.is_ascii_digit())

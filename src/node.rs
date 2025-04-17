@@ -19,11 +19,14 @@ impl std::fmt::Display for Node {
             Self::Number(n) => n.to_string(),
             Self::Bool(b) => b.to_string(),
             Self::Time(t, z) => {
-                let local_time = chrono::Utc.timestamp_opt(*t, 0).single().unwrap();
+                let local_time = chrono::Utc
+                    .timestamp_opt(*t, 0)
+                    .single()
+                    .expect("Invalid timestamp");
                 let local_time_str = local_time.format("%Y-%m-%d %H:%M:%S").to_string();
                 let offset_hours = z / 3600;
                 let offset_minutes = (z % 3600) / 60;
-                format!("{} UTC{:+03}:{:02}", local_time_str, offset_hours, offset_minutes)
+                format!("{local_time_str} UTC{offset_hours:+03}:{offset_minutes:02}")
             }
             Self::Text(s) | Self::Symbol(s) => s.clone(),
             Self::Function(_) => "function".to_string(),
@@ -32,10 +35,10 @@ impl std::fmt::Display for Node {
                 result.push('(');
                 result.push_str(
                     &nodes
-                    .iter()
-                    .map(Self::to_string)
-                    .collect::<Vec<_>>()
-                    .join(" "),
+                        .iter()
+                        .map(Self::to_string)
+                        .collect::<Vec<_>>()
+                        .join(" "),
                 );
                 result.push(')');
                 result

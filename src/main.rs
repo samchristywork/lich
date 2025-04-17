@@ -12,33 +12,24 @@ pub mod sequence;
 pub mod string;
 pub mod system;
 pub mod time;
+pub mod tree;
 pub mod util;
 
-use std::io::Write;
-use std::io::BufRead;
-use crate::node::Node;
 use crate::environment::Environment;
-use crate::parse::parse;
 use crate::eval::eval;
+use crate::node::Node;
+use crate::parse::parse;
+use std::io::BufRead;
+use std::io::Write;
 
 const GREY: &str = "\x1b[90m";
 const NORMAL: &str = "\x1b[0m";
 
 fn evaluate_version(env: &mut Environment) -> Result<Node, String> {
     let input = "(version)";
-    let expressions = parse(input).map_err(|e| {
-        format!("Failed to parse input: {e}")
-    })?;
+    let expressions = parse(input).map_err(|e| format!("Failed to parse input: {e}"))?;
 
-    let result = eval(&expressions[0], env);
-    match result {
-        Ok(node) => {
-            Ok(node)
-        }
-        Err(e) => {
-            Err(e)
-        }
-    }
+    eval(&expressions[0], env)
 }
 
 fn print_version(env: &mut Environment) {
@@ -56,24 +47,27 @@ fn repl(env: &mut Environment, server: bool) -> Result<(), String> {
     if server {
         let socket_string = "localhost:8080";
 
-        let listener = std::net::TcpListener::bind(socket_string).map_err(|e| {
-            format!("Failed to bind to socket: {e}")
-        })?;
+        let listener = std::net::TcpListener::bind(socket_string)
+            .map_err(|e| format!("Failed to bind to socket: {e}"))?;
 
         println!("Server started on {socket_string}");
         loop {
-            let (mut stream, addr) = listener.accept().map_err(|e| {
-                format!("Failed to accept connection: {e}")
-            })?;
+            let (mut stream, addr) = listener
+                .accept()
+                .map_err(|e| format!("Failed to accept connection: {e}"))?;
             println!("Client connected: {addr}");
-            let mut reader = std::io::BufReader::new(stream.try_clone().map_err(|e| {
-                format!("Failed to clone stream: {e}")
-            })?);
+            let mut reader = std::io::BufReader::new(
+                stream
+                    .try_clone()
+                    .map_err(|e| format!("Failed to clone stream: {e}"))?,
+            );
 
             let mut input = String::new();
-            while reader.read_line(&mut input).map_err(|e| {
-                format!("Failed to read line: {e}")
-            })? > 0 {
+            while reader
+                .read_line(&mut input)
+                .map_err(|e| format!("Failed to read line: {e}"))?
+                > 0
+            {
                 let input_string = input.trim().to_string();
                 match parse(&input_string) {
                     Ok(expressions) => {
@@ -83,9 +77,9 @@ fn repl(env: &mut Environment, server: bool) -> Result<(), String> {
 
                             // Send the result back to the client
                             let response = format!("{GREY}{result:?}{NORMAL}\n");
-                            stream.write_all(response.as_bytes()).map_err(|e| {
-                                format!("Failed to write to stream: {e}")
-                            })?;
+                            stream
+                                .write_all(response.as_bytes())
+                                .map_err(|e| format!("Failed to write to stream: {e}"))?;
                         }
                     }
                     Err(e) => {
@@ -107,16 +101,14 @@ fn repl(env: &mut Environment, server: bool) -> Result<(), String> {
 
         loop {
             print!("lich> ");
-            std::io::stdout().flush().map_err(|e| {
-                format!("Failed to flush stdout: {e}")
-            })?;
+            std::io::stdout()
+                .flush()
+                .map_err(|e| format!("Failed to flush stdout: {e}"))?;
 
             let mut input = String::new();
             std::io::stdin()
                 .read_line(&mut input)
-                .map_err(|e| {
-                    format!("Failed to read line: {e}")
-                })?;
+                .map_err(|e| format!("Failed to read line: {e}"))?;
             if input.is_empty() {
                 println!();
                 break;
@@ -142,8 +134,7 @@ fn repl(env: &mut Environment, server: bool) -> Result<(), String> {
 
 fn process_files(positional_args: &Vec<&String>, env: &mut Environment, verbose: bool) {
     for arg in positional_args {
-        let input_string = std::fs::read_to_string(arg)
-            .expect("Failed to read input file");
+        let input_string = std::fs::read_to_string(arg).expect("Failed to read input file");
 
         match parse(&input_string) {
             Ok(expressions) => {
@@ -168,27 +159,7 @@ fn process_files(positional_args: &Vec<&String>, env: &mut Environment, verbose:
     }
 }
 
-macro_rules! get_flag {
-    ($args:expr, $flag:expr, $long_flag:expr) => {
-        $args.iter().any(|arg| *arg == $flag || *arg == $long_flag)
-    };
-}
-
-fn usage() {
-    println!("Usage: lich [options] [file1 file2 ...]");
-    println!("Options:");
-    println!("  -h, --help       Show this help message");
-    println!("  -v, --verbose    Enable verbose mode");
-    println!("  -V, --version    Show version information");
-    println!("  -s, --server     Start in server mode");
-}
-
-fn main() {
-    let mut env = Environment {
-        parent: None,
-        variables: std::collections::HashMap::new(),
-    };
-
+fn create_environment(env: &mut Environment) {
     // Arithmetic
     env.add_function("+", arithmetic::fn_add);
     env.add_function("-", arithmetic::fn_sub);
@@ -283,6 +254,31 @@ fn main() {
     env.add_function("regex-replace", regex::fn_regex_replace);
     env.add_function("regex-split", regex::fn_regex_split);
 
+}
+
+macro_rules! get_flag {
+    ($args:expr, $flag:expr, $long_flag:expr) => {
+        $args.iter().any(|arg| *arg == $flag || *arg == $long_flag)
+    };
+}
+
+fn usage() {
+    println!("Usage: lich [options] [file1 file2 ...]");
+    println!("Options:");
+    println!("  -h, --help       Show this help message");
+    println!("  -v, --verbose    Enable verbose mode");
+    println!("  -V, --version    Show version information");
+    println!("  -s, --server     Start in server mode");
+}
+
+fn main() {
+    let mut env = Environment {
+        parent: None,
+        variables: std::collections::HashMap::new(),
+    };
+
+    create_environment(&mut env);
+
     let args = std::env::args().collect::<Vec<_>>();
     let flag_args = args
         .iter()
@@ -311,7 +307,11 @@ fn main() {
     }
 
     if positional_args.len() > 1 {
-        process_files(&positional_args.into_iter().skip(1).collect(), &mut env, verbose_flag);
+        process_files(
+            &positional_args.into_iter().skip(1).collect(),
+            &mut env,
+            verbose_flag,
+        );
     } else {
         repl(&mut env, server_flag).expect("Failed to start REPL");
     }

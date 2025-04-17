@@ -1,10 +1,17 @@
-use crate::node::Node;
 use crate::environment::Environment;
+use crate::node::Node;
 
 pub fn eval(node: &Node, env: &mut Environment) -> Result<Node, String> {
     match node {
-        Node::Symbol(_) => env.lookup(node).ok_or_else(|| format!("Undefined variable: {node:?}")),
-        Node::Number(_) | Node::Text(_) | Node::Bool(_) | Node::Function(_) | Node::Regex(_) | Node::Time(_, _) => Ok(node.clone()),
+        Node::Symbol(_) => env
+            .lookup(node)
+            .ok_or_else(|| format!("Undefined variable: {node:?}")),
+        Node::Number(_)
+        | Node::Text(_)
+        | Node::Bool(_)
+        | Node::Function(_)
+        | Node::Regex(_)
+        | Node::Time(_, _) => Ok(node.clone()),
         Node::List(nodes) => eval_list(nodes, env),
     }
 }
@@ -53,7 +60,11 @@ fn eval_lambda(rest: &[Node]) -> Result<Node, String> {
     let parameters = rest[0].clone();
     let body = rest[1].clone();
 
-    Ok(Node::List(vec![Node::Symbol("lambda".to_string()), parameters, body]))
+    Ok(Node::List(vec![
+        Node::Symbol("lambda".to_string()),
+        parameters,
+        body,
+    ]))
 }
 
 fn eval_let(rest: &[Node], env: &mut Environment) -> Result<Node, String> {
@@ -105,7 +116,7 @@ fn eval_let_restricted(rest: &[Node], env: &mut Environment) -> Result<Node, Str
                         let variable = &binding_pair[0];
                         let value = eval(&binding_pair[0], env)?;
                         new_env.variables.insert(variable.clone(), value);
-                    }else if binding_pair.len() == 2 {
+                    } else if binding_pair.len() == 2 {
                         let variable = &binding_pair[0];
                         let value = eval(&binding_pair[1], env)?;
                         new_env.variables.insert(variable.clone(), value);
@@ -145,8 +156,13 @@ fn eval_list(nodes: &[Node], env: &mut Environment) -> Result<Node, String> {
                 "let" => eval_let(rest, env)?,
                 "let-restricted" => eval_let_restricted(rest, env)?,
                 _ => {
-                    let function = env.lookup(first).ok_or_else(|| format!("Undefined function: {first:?}"))?;
-                    let arguments = rest.iter().map(|n| eval(n, env)).collect::<Result<Vec<_>, _>>()?;
+                    let function = env
+                        .lookup(first)
+                        .ok_or_else(|| format!("Undefined function: {first:?}"))?;
+                    let arguments = rest
+                        .iter()
+                        .map(|n| eval(n, env))
+                        .collect::<Result<Vec<_>, _>>()?;
                     apply(&function, &arguments, env)?
                 }
             }
@@ -162,7 +178,13 @@ pub fn apply(function: &Node, arguments: &[Node], env: &mut Environment) -> Resu
             if let Node::Symbol(s) = &nodes[0] {
                 if s == "lambda" {
                     if let Node::List(params) = &nodes[1] {
-                        assert!((params.len() == arguments.len()), "Argument count mismatch");
+                        if params.len() != arguments.len() {
+                            return Err(format!(
+                                "Argument count mismatch: expected {}, got {}",
+                                params.len(),
+                                arguments.len()
+                            ));
+                        }
                         let mut new_env = Environment {
                             parent: Some(Box::new(env.clone())),
                             variables: std::collections::HashMap::new(),
@@ -174,7 +196,9 @@ pub fn apply(function: &Node, arguments: &[Node], env: &mut Environment) -> Resu
                     }
                 }
             }
-            return Err(format!("Function application not implemented: {function:?}"));
+            return Err(format!(
+                "Function application not implemented: {function:?}"
+            ));
         }
         _ => return Err(format!("Invalid function: {function:?}")),
     })

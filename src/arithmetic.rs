@@ -1,5 +1,5 @@
-use crate::node::Node;
 use crate::environment::Environment;
+use crate::node::Node;
 
 //- (test "+" (+ 1 2 3) 6)
 //- (test "+" (+ -10 2 3) -5)
@@ -27,7 +27,10 @@ pub fn fn_sub(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
             if let Node::Number(num) = &arguments[0] {
                 Ok(Node::Number(-num))
             } else {
-                Err(format!("Invalid argument for subtraction {:?}", arguments[0]))
+                Err(format!(
+                    "Invalid argument for subtraction {:?}",
+                    arguments[0]
+                ))
             }
         }
         std::cmp::Ordering::Greater => {
@@ -43,7 +46,10 @@ pub fn fn_sub(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
                 }
                 Ok(Node::Number(result))
             } else {
-                Err(format!("Invalid argument for subtraction {:?}", arguments[0]))
+                Err(format!(
+                    "Invalid argument for subtraction {:?}",
+                    arguments[0]
+                ))
             }
         }
         std::cmp::Ordering::Less => {

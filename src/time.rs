@@ -1,5 +1,5 @@
-use crate::node::Node;
 use crate::environment::Environment;
+use crate::node::Node;
 
 //- (test "time" (time->string (time 2025 1 1 12 0 0 -5)) "2025-01-01 12:00:00 UTC-05:00")
 //- (test "time" (time->number (time 1970 1 1 0 0 0 0)) 0)
@@ -42,9 +42,7 @@ pub fn fn_now(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
     if arguments.is_empty() {
         let now = chrono::Utc::now();
         let now_seconds = now.timestamp();
-        let tz = chrono::Local::now()
-            .offset()
-            .local_minus_utc();
+        let tz = chrono::Local::now().offset().local_minus_utc();
         return Ok(Node::Time(now_seconds, tz));
     }
 

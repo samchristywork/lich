@@ -1,6 +1,6 @@
-use crate::node::Node;
 use crate::environment::Environment;
 use crate::eval;
+use crate::node::Node;
 use crate::parse::parse;
 
 pub fn fn_print_env(_: &[Node], env: &mut Environment) -> Result<Node, String> {

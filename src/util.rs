@@ -1,6 +1,6 @@
-use crate::node::Node;
 use crate::environment::Environment;
 use crate::eval;
+use crate::node::Node;
 
 //- (test "begin" (begin 1 2 3) 3)
 //- (test "begin" (begin) ())

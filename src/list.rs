@@ -1,5 +1,5 @@
-use crate::node::Node;
 use crate::environment::Environment;
+use crate::node::Node;
 
 //- (test "car" (car (quote (1 2 3))) 1)
 //- (test "car" (car (quote ())) ())
@@ -110,10 +110,16 @@ pub fn fn_nth(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
     if arguments.len() == 2 {
         if let Node::List(list) = &arguments[1] {
             if let Node::Number(index) = &arguments[0] {
-                if *index < 0 || *index >= list.len() as i64 {
+                let Ok(l) = i64::try_from(list.len()) else {
+                    return Err("Failed to convert length".to_string());
+                };
+                if *index < 0 || *index >= l {
                     return Ok(Node::List(vec![]));
                 }
-                return Ok(list[*index as usize].clone());
+                let Ok(index) = usize::try_from(*index) else {
+                    return Err("Failed to convert index".to_string());
+                };
+                return Ok(list[index].clone());
             }
         }
     }

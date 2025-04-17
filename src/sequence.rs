@@ -1,6 +1,6 @@
-use crate::node::Node;
 use crate::environment::Environment;
 use crate::eval::apply;
+use crate::node::Node;
 
 //- (test "fold" (fold + 0 (quote (1 2 3))) 6)
 //- (test "fold" (fold + 0 (quote ())) 0)
@@ -19,10 +19,7 @@ pub fn fn_fold(arguments: &[Node], env: &mut Environment) -> Result<Node, String
             return Ok(result);
         }
     }
-    Err(format!(
-        "Invalid arguments for fold: {:?}",
-        &arguments[0]
-    ))
+    Err(format!("Invalid arguments for fold: {:?}", &arguments[0]))
 }
 
 //- (test "zip" (zip (quote (1 2 3)) (quote (4 5 6))) (quote ((1 4) (2 5) (3 6))))
@@ -33,9 +30,7 @@ pub fn fn_zip(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
         let list1 = &arguments[0];
         let list2 = &arguments[1];
 
-        if let (Node::List(l1), Node::List(l2)) =
-            (list1, list2)
-        {
+        if let (Node::List(l1), Node::List(l2)) = (list1, list2) {
             let mut zipped = Vec::new();
             for (item1, item2) in l1.iter().zip(l2.iter()) {
                 zipped.push(Node::List(vec![item1.clone(), item2.clone()]));
@@ -43,10 +38,7 @@ pub fn fn_zip(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
             return Ok(Node::List(zipped));
         }
     }
-    Err(format!(
-        "Invalid arguments for zip: {:?}",
-        &arguments[0]
-    ))
+    Err(format!("Invalid arguments for zip: {:?}", &arguments[0]))
 }
 
 //- (test "range" (range 1 5) (quote (1 2 3 4)))
@@ -54,9 +46,7 @@ pub fn fn_zip(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
 //- (test "range" (range 0 0) (quote ()))
 pub fn fn_range(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
     if arguments.len() == 2 {
-        if let (Node::Number(start), Node::Number(end)) =
-            (&arguments[0], &arguments[1])
-        {
+        if let (Node::Number(start), Node::Number(end)) = (&arguments[0], &arguments[1]) {
             let mut range = Vec::new();
             for i in *start..*end {
                 range.push(Node::Number(i));
@@ -72,10 +62,7 @@ pub fn fn_range(arguments: &[Node], _: &mut Environment) -> Result<Node, String>
             return Ok(Node::List(range));
         }
     }
-    Err(format!(
-        "Invalid arguments for range: {:?}",
-        &arguments[0]
-    ))
+    Err(format!("Invalid arguments for range: {:?}", &arguments[0]))
 }
 
 pub fn fn_for_each(arguments: &[Node], env: &mut Environment) -> Result<Node, String> {
@@ -113,10 +100,7 @@ pub fn fn_map(arguments: &[Node], env: &mut Environment) -> Result<Node, String>
             return Ok(Node::List(mapped));
         }
     }
-    Err(format!(
-        "Invalid arguments for map: {:?}",
-        &arguments[0]
-    ))
+    Err(format!("Invalid arguments for map: {:?}", &arguments[0]))
 }
 
 //- (test "filter" (filter even? (quote (1 2 3 4))) (quote (2 4)))
@@ -135,16 +119,11 @@ pub fn fn_filter(arguments: &[Node], env: &mut Environment) -> Result<Node, Stri
                         filtered.push(item.clone());
                     }
                 } else {
-                    return Err(format!(
-                        "Function did not return a boolean value: {item:?}",
-                    ));
+                    return Err(format!("Function did not return a boolean value: {item:?}",));
                 }
             }
             return Ok(Node::List(filtered));
         }
     }
-    Err(format!(
-        "Invalid arguments for filter: {:?}",
-        &arguments[0]
-    ))
+    Err(format!("Invalid arguments for filter: {:?}", &arguments[0]))
 }

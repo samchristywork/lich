@@ -46,9 +46,7 @@ impl Environment {
         name: &str,
         function: fn(&[Node], &mut Self) -> Result<Node, String>,
     ) {
-        self.variables.insert(
-            Node::Symbol(name.to_string()),
-            Node::Function(function),
-        );
+        self.variables
+            .insert(Node::Symbol(name.to_string()), Node::Function(function));
     }
 }

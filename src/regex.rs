@@ -1,5 +1,5 @@
-use crate::node::Node;
 use crate::environment::Environment;
+use crate::node::Node;
 
 pub fn fn_regex(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
     if arguments.len() == 1 {
@@ -52,9 +52,7 @@ pub fn fn_regex_split(arguments: &[Node], _: &mut Environment) -> Result<Node, S
             if let Node::Text(s) = &arguments[1] {
                 let re = regex::Regex::new(r).map_err(|_| "Invalid regex".to_string())?;
                 return Ok(Node::List(
-                    re.split(s)
-                        .map(|s| Node::Text(s.to_string()))
-                        .collect(),
+                    re.split(s).map(|s| Node::Text(s.to_string())).collect(),
                 ));
             }
         }
