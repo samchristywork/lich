@@ -11,8 +11,8 @@ pub mod regex;
 pub mod sequence;
 pub mod string;
 pub mod system;
+pub mod time;
 pub mod util;
-pub mod web;
 
 use std::io::Write;
 use std::io::BufRead;
@@ -220,6 +220,13 @@ fn main() {
     env.add_function("last", list::fn_last);
     env.add_function("nth", list::fn_nth);
 
+    // Time
+    env.add_function("time", time::fn_time);
+    env.add_function("now", time::fn_now);
+    env.add_function("add-days", time::fn_add_days);
+    env.add_function("add-hours", time::fn_add_hours);
+    env.add_function("add-minutes", time::fn_add_minutes);
+
     // Sequence Manipulation
     env.add_function("fold", sequence::fn_fold);
     env.add_function("zip", sequence::fn_zip);
@@ -248,6 +255,7 @@ fn main() {
     env.add_function("symbol->string", conversion::fn_symbol_to_string);
     env.add_function("string->boolean", conversion::fn_string_to_boolean);
     env.add_function("boolean->string", conversion::fn_boolean_to_string);
+    env.add_function("time->string", conversion::fn_time_to_string);
 
     // I/O
     env.add_function("print-env", io::fn_print_env);

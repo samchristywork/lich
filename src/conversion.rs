@@ -96,3 +96,12 @@ pub fn fn_boolean_to_string(arguments: &[Node], _: &mut Environment) -> Result<N
     }
     Err("Invalid arguments for boolean->string".to_string())
 }
+
+pub fn fn_time_to_string(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
+    if arguments.len() == 1 {
+        if let Node::Time(seconds, offset) = &arguments[0] {
+            return Ok(Node::Text(arguments[0].to_string()));
+        }
+    }
+    Err("Invalid arguments for time->string".to_string())
+}
