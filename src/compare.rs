@@ -19,7 +19,9 @@ pub fn fn_eq(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
 //- (test "<" (< 1 1) false)
 pub fn fn_less_than(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
     if arguments.len() == 2 {
-        return Ok(Node::Bool(arguments[0] < arguments[1]));
+        if let (Node::Number(a), Node::Number(b)) = (&arguments[0], &arguments[1]) {
+            return Ok(Node::Bool(a < b));
+        }
     }
     Err(format!(
         "Invalid arguments for less than check: {:?}",
@@ -32,7 +34,9 @@ pub fn fn_less_than(arguments: &[Node], _: &mut Environment) -> Result<Node, Str
 //- (test ">" (> 1 1) false)
 pub fn fn_greater_than(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
     if arguments.len() == 2 {
-        return Ok(Node::Bool(arguments[0] > arguments[1]));
+        if let (Node::Number(a), Node::Number(b)) = (&arguments[0], &arguments[1]) {
+            return Ok(Node::Bool(a > b));
+        }
     }
     Err(format!(
         "Invalid arguments for greater than check: {:?}",
@@ -45,7 +49,9 @@ pub fn fn_greater_than(arguments: &[Node], _: &mut Environment) -> Result<Node, 
 //- (test "<=" (<= 1 1) true)
 pub fn fn_less_than_or_equal(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
     if arguments.len() == 2 {
-        return Ok(Node::Bool(arguments[0] <= arguments[1]));
+        if let (Node::Number(a), Node::Number(b)) = (&arguments[0], &arguments[1]) {
+            return Ok(Node::Bool(a <= b));
+        }
     }
     Err(format!(
         "Invalid arguments for less than or equal check: {:?}",
@@ -58,7 +64,9 @@ pub fn fn_less_than_or_equal(arguments: &[Node], _: &mut Environment) -> Result<
 //- (test ">=" (>= 1 1) true)
 pub fn fn_greater_than_or_equal(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
     if arguments.len() == 2 {
-        return Ok(Node::Bool(arguments[0] >= arguments[1]));
+        if let (Node::Number(a), Node::Number(b)) = (&arguments[0], &arguments[1]) {
+            return Ok(Node::Bool(a >= b));
+        }
     }
     Err(format!(
         "Invalid arguments for greater than or equal check: {:?}",
