@@ -213,6 +213,7 @@ fn main() {
     env.add_function("null?", list::fn_is_null);
     env.add_function("list", list::fn_list);
     env.add_function("last", list::fn_last);
+    env.add_function("nth", list::fn_nth);
 
     // Sequence Manipulation
     env.add_function("fold", sequence::fn_fold);

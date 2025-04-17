@@ -102,3 +102,20 @@ pub fn fn_last(arguments: &[Node], _: &mut Environment) -> Result<Node, String> 
     }
     Err("Invalid arguments for last".to_string())
 }
+
+//- (test "nth" (nth 1 (quote (1 2 3))) 2)
+//- (test "nth" (nth 0 (quote ())) ())
+//- (test "nth" (nth 0 (quote (1))) 1)
+pub fn fn_nth(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
+    if arguments.len() == 2 {
+        if let Node::List(list) = &arguments[1] {
+            if let Node::Number(index) = &arguments[0] {
+                if *index < 0 || *index >= list.len() as i64 {
+                    return Ok(Node::List(vec![]));
+                }
+                return Ok(list[*index as usize].clone());
+            }
+        }
+    }
+    Err("Invalid arguments for nth".to_string())
+}
