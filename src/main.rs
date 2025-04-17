@@ -242,6 +242,8 @@ fn main() {
     env.add_function("load", io::fn_load);
     env.add_function("write", io::fn_write);
     env.add_function("write-line", io::fn_write_line);
+    env.add_function("read-line", io::fn_read_line);
+    env.add_function("read-file", io::fn_read_file);
 
     // Utility
     env.add_function("begin", util::fn_begin);
