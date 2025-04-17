@@ -80,3 +80,68 @@ pub fn fn_is_even(arguments: &[Node], _: &mut Environment) -> Result<Node, Strin
 
     Err(format!("Invalid arguments for even?: {arguments:?}"))
 }
+
+//- (test "odd?" (odd? 2) false)
+//- (test "odd?" (odd? 3) true)
+//- (test "odd?" (odd? 0) false)
+pub fn fn_is_odd(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
+    if arguments.len() == 1 {
+        if let Node::Number(num) = &arguments[0] {
+            return Ok(Node::Bool(num % 2 != 0));
+        }
+    }
+
+    Err(format!("Invalid arguments for odd?: {arguments:?}"))
+}
+
+//- (test "inc" (inc 1) 2)
+//- (test "inc" (inc 0) 1)
+//- (test "inc" (inc -1) 0)
+pub fn fn_inc(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
+    if arguments.len() == 1 {
+        if let Node::Number(num) = &arguments[0] {
+            return Ok(Node::Number(num + 1));
+        }
+    }
+
+    Err(format!("Invalid arguments for inc: {arguments:?}"))
+}
+
+//- (test "dec" (dec 1) 0)
+//- (test "dec" (dec 0) -1)
+//- (test "dec" (dec -1) -2)
+pub fn fn_dec(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
+    if arguments.len() == 1 {
+        if let Node::Number(num) = &arguments[0] {
+            return Ok(Node::Number(num - 1));
+        }
+    }
+
+    Err(format!("Invalid arguments for dec: {arguments:?}"))
+}
+
+//- (test "abs" (abs 1) 1)
+//- (test "abs" (abs -1) 1)
+//- (test "abs" (abs 0) 0)
+pub fn fn_abs(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
+    if arguments.len() == 1 {
+        if let Node::Number(num) = &arguments[0] {
+            return Ok(Node::Number(num.abs()));
+        }
+    }
+
+    Err(format!("Invalid arguments for abs: {arguments:?}"))
+}
+
+//- (test "negate" (negate 1) -1)
+//- (test "negate" (negate -1) 1)
+//- (test "negate" (negate 0) 0)
+pub fn fn_negate(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
+    if arguments.len() == 1 {
+        if let Node::Number(num) = &arguments[0] {
+            return Ok(Node::Number(-num));
+        }
+    }
+
+    Err(format!("Invalid arguments for negate: {arguments:?}"))
+}

@@ -194,6 +194,11 @@ fn main() {
     env.add_function("-", arithmetic::fn_sub);
     env.add_function("*", arithmetic::fn_mult);
     env.add_function("even?", arithmetic::fn_is_even);
+    env.add_function("odd?", arithmetic::fn_is_odd);
+    env.add_function("inc", arithmetic::fn_inc);
+    env.add_function("dec", arithmetic::fn_dec);
+    env.add_function("abs", arithmetic::fn_abs);
+    env.add_function("negate", arithmetic::fn_negate);
 
     // Comparison
     env.add_function("=", compare::fn_eq);
