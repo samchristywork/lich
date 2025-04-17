@@ -14,15 +14,19 @@ impl std::fmt::Display for Environment {
         }
 
         writeln!(f, "Environment ID: {self:p}")?;
-        let mut keys: Vec<_> = self.variables.keys().collect();
-        keys.sort();
 
-        for key in keys {
+        // Sort and print the variables
+        let mut items = self.variables.keys().map(|key| {
             let value = self.variables.get(key);
             match value {
-                Some(value) => writeln!(f, "  {key} => {value}")?,
-                None => writeln!(f, "  {key} => <not found>")?,
+                Some(value) => format!("  {key} => {value}"),
+                None => format!("  {key} => <not found>"),
             }
+        }).collect::<Vec<_>>();
+
+        items.sort();
+        for item in items {
+            writeln!(f, "{item}")?;
         }
 
         Ok(())

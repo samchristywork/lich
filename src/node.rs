@@ -1,7 +1,7 @@
 use crate::environment::Environment;
 use chrono::TimeZone;
 
-#[derive(Debug, Clone, PartialEq, Hash, Eq, Ord, PartialOrd)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub enum Node {
     Symbol(String),
     Number(i64),
