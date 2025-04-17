@@ -1,4 +1,5 @@
 use crate::environment::Environment;
+use chrono::TimeZone;
 
 #[derive(Debug, Clone, PartialEq, Hash, Eq, Ord, PartialOrd)]
 pub enum Node {
@@ -7,6 +8,7 @@ pub enum Node {
     Text(String),
     Bool(bool),
     List(Vec<Node>),
+    Time(i64, i32), // Seconds since epoch and timezone offset in seconds
     Function(fn(&[Node], &mut Environment) -> Result<Node, String>),
     Regex(String), // TODO: It would be more efficient to store a compiled regex
 }
@@ -16,6 +18,13 @@ impl std::fmt::Display for Node {
         let res = match self {
             Self::Number(n) => n.to_string(),
             Self::Bool(b) => b.to_string(),
+            Self::Time(t, z) => {
+                let local_time = chrono::Utc.timestamp_opt(*t, 0).single().unwrap();
+                let local_time_str = local_time.format("%Y-%m-%d %H:%M:%S").to_string();
+                let offset_hours = z / 3600;
+                let offset_minutes = (z % 3600) / 60;
+                format!("{} UTC{:+03}:{:02}", local_time_str, offset_hours, offset_minutes)
+            }
             Self::Text(s) | Self::Symbol(s) => s.clone(),
             Self::Function(_) => "function".to_string(),
             Self::List(nodes) => {

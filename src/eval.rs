@@ -4,7 +4,7 @@ use crate::environment::Environment;
 pub fn eval(node: &Node, env: &mut Environment) -> Result<Node, String> {
     match node {
         Node::Symbol(_) => env.lookup(node).ok_or_else(|| format!("Undefined variable: {node:?}")),
-        Node::Number(_) | Node::Text(_) | Node::Bool(_) | Node::Function(_) | Node::Regex(_) => Ok(node.clone()),
+        Node::Number(_) | Node::Text(_) | Node::Bool(_) | Node::Function(_) | Node::Regex(_) | Node::Time(_, _) => Ok(node.clone()),
         Node::List(nodes) => eval_list(nodes, env),
     }
 }

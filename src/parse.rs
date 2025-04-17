@@ -165,7 +165,10 @@ fn tokenize(source: &str) -> Result<Vec<Token>, String> {
 
                 // Numbers are a strict subset of symbols, so we check for numbers first
                 if is_valid_number(&value)? {
-                    tokens.push(Token::Number(value.parse::<i64>().expect("Failed to parse number")));
+                    tokens.push(Token::Number(match value.parse::<i64>() {
+                        Ok(n) => n,
+                        Err(_) => return Err("Could not parse number".to_string()),
+                    }));
 
                 // Booleans are a strict subset of symbols, so we check for booleans next
                 } else if value == "true" {

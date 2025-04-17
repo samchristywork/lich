@@ -226,6 +226,7 @@ fn main() {
     env.add_function("add-days", time::fn_add_days);
     env.add_function("add-hours", time::fn_add_hours);
     env.add_function("add-minutes", time::fn_add_minutes);
+    env.add_function("add-seconds", time::fn_add_seconds);
 
     // Sequence Manipulation
     env.add_function("fold", sequence::fn_fold);
@@ -256,6 +257,7 @@ fn main() {
     env.add_function("string->boolean", conversion::fn_string_to_boolean);
     env.add_function("boolean->string", conversion::fn_boolean_to_string);
     env.add_function("time->string", conversion::fn_time_to_string);
+    env.add_function("time->number", conversion::fn_time_to_number);
 
     // I/O
     env.add_function("print-env", io::fn_print_env);

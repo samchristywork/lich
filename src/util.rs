@@ -27,6 +27,7 @@ pub fn fn_type(arguments: &[Node], _: &mut Environment) -> Result<Node, String> 
             Node::Symbol(_) => return Ok(Node::Text("symbol".to_string())),
             Node::Function(_) => return Ok(Node::Text("function".to_string())),
             Node::Regex(_) => return Ok(Node::Text("regex".to_string())),
+            Node::Time(_, _) => return Ok(Node::Text("time".to_string())),
         }
     }
     Err("Invalid arguments for type".to_string())

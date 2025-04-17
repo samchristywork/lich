@@ -99,9 +99,18 @@ pub fn fn_boolean_to_string(arguments: &[Node], _: &mut Environment) -> Result<N
 
 pub fn fn_time_to_string(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
     if arguments.len() == 1 {
-        if let Node::Time(seconds, offset) = &arguments[0] {
+        if let Node::Time(_, _) = &arguments[0] {
             return Ok(Node::Text(arguments[0].to_string()));
         }
     }
     Err("Invalid arguments for time->string".to_string())
+}
+
+pub fn fn_time_to_number(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
+    if arguments.len() == 1 {
+        if let Node::Time(seconds, _) = &arguments[0] {
+            return Ok(Node::Number(*seconds));
+        }
+    }
+    Err("Invalid arguments for time->number".to_string())
 }
