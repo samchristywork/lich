@@ -232,6 +232,12 @@ fn main() {
     env.add_function("concat", string::fn_concat);
     env.add_function("split", string::fn_split);
     env.add_function("strip", string::fn_strip);
+    env.add_function("join", string::fn_join);
+    env.add_function("index-of", string::fn_index_of);
+    env.add_function("substring", string::fn_substring);
+    env.add_function("replace", string::fn_replace);
+    env.add_function("upper", string::fn_upper);
+    env.add_function("lower", string::fn_lower);
 
     // Conversion
     env.add_function("number->string", conversion::fn_number_to_string);

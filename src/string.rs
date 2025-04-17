@@ -56,3 +56,111 @@ pub fn fn_strip(arguments: &[Node], _: &mut Environment) -> Result<Node, String>
         &arguments[0]
     ))
 }
+
+//- (test "join" (join "," (quote ("foo" "bar" "baz"))) "foo,bar,baz")
+//- (test "join" (join "," (quote ("foo"))) "foo")
+//- (test "join" (join "," (quote ())) "")
+pub fn fn_join(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
+    if arguments.len() == 2 {
+        if let (Node::Text(delimiter), Node::List(list)) =
+            (&arguments[0], &arguments[1])
+        {
+            let joined = list
+                .iter()
+                .map(|node| node.to_string())
+                .collect::<Vec<_>>()
+                .join(delimiter);
+            return Ok(Node::Text(joined));
+        }
+    }
+    Err(format!(
+        "Invalid arguments for join: {:?}",
+        &arguments[0]
+    ))
+}
+
+//- (test "index-of" (index-of "foo" "foobar") 0)
+//- (test "index-of" (index-of "bar" "foobar") 3)
+//- (test "index-of" (index-of "baz" "foobar") -1)
+pub fn fn_index_of(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
+    if arguments.len() == 2 {
+        if let (Node::Text(substring), Node::Text(text)) =
+            (&arguments[0], &arguments[1])
+        {
+            return match text.find(substring) {
+                Some(n) => Ok(Node::Number(n as i64)),
+                None => Ok(Node::Number(-1)),
+            }
+        }
+    }
+    Err(format!(
+        "Invalid arguments for index-of: {:?}",
+        &arguments[0]
+    ))
+}
+
+//- (test "substring" (substring "foobar" 0 3) "foo")
+//- (test "substring" (substring "foobar" 3 6) "bar")
+//- (test "substring" (substring "foobar" 3 3) "")
+pub fn fn_substring(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
+    if arguments.len() == 3 {
+        if let (Node::Text(text), Node::Number(start), Node::Number(end)) =
+            (&arguments[0], &arguments[1], &arguments[2])
+        {
+            let start = *start as usize;
+            let end = *end as usize;
+            return Ok(Node::Text(text[start..end].to_string()));
+        }
+    }
+    Err(format!(
+        "Invalid arguments for substring: {:?}",
+        &arguments[0]
+    ))
+}
+
+//- (test "replace" (replace "foo" "bar" "foobar") "barbar")
+//- (test "replace" (replace "bar" "foo" "foobar") "foofoo")
+//- (test "replace" (replace "baz" "foo" "foobar") "foobar")
+pub fn fn_replace(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
+    if arguments.len() == 3 {
+        if let (Node::Text(old), Node::Text(new), Node::Text(text)) =
+            (&arguments[0], &arguments[1], &arguments[2])
+        {
+            return Ok(Node::Text(text.replace(old, new)));
+        }
+    }
+    Err(format!(
+        "Invalid arguments for replace: {:?}",
+        &arguments[0]
+    ))
+}
+
+//- (test "upper" (upper "foo") "FOO")
+//- (test "upper" (upper "FOO") "FOO")
+//- (test "upper" (upper "") "")
+pub fn fn_upper(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
+    if arguments.len() == 1 {
+        if let Node::Text(s) = &arguments[0] {
+            return Ok(Node::Text(s.to_uppercase()));
+        }
+    }
+    Err(format!(
+        "Invalid arguments for upper: {:?}",
+        &arguments[0]
+    ))
+}
+
+//- (test "lower" (lower "foo") "foo")
+//- (test "lower" (lower "FOO") "foo")
+//- (test "lower" (lower "") "")
+pub fn fn_lower(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
+    if arguments.len() == 1 {
+        if let Node::Text(s) = &arguments[0] {
+            return Ok(Node::Text(s.to_lowercase()));
+        }
+    }
+    Err(format!(
+        "Invalid arguments for lower: {:?}",
+        &arguments[0]
+    ))
+}
