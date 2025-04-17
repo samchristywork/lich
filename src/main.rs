@@ -204,6 +204,11 @@ fn main() {
     env.add_function("=", compare::fn_eq);
     env.add_function("<", compare::fn_less_than);
     env.add_function(">", compare::fn_greater_than);
+    env.add_function("<=", compare::fn_less_than_or_equal);
+    env.add_function(">=", compare::fn_greater_than_or_equal);
+    env.add_function("not", compare::fn_not);
+    env.add_function("and", compare::fn_and);
+    env.add_function("or", compare::fn_or);
 
     // List Manipulation
     env.add_function("car", list::fn_car);
