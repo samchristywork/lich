@@ -17,11 +17,22 @@ pub fn eval(node: &Node, env: &mut Environment) -> Result<Node, String> {
 }
 
 fn eval_if(rest: &[Node], env: &mut Environment) -> Result<Node, String> {
-    let condition = eval(&rest[0], env);
-    match condition {
-        Ok(Node::Bool(true)) => eval(&rest[1], env),
-        Ok(Node::Bool(false)) => eval(&rest[2], env),
-        _ => Err("Condition must be a boolean".to_string()),
+    if rest.len() == 3 {
+        let condition = eval(&rest[0], env);
+        match condition {
+            Ok(Node::Bool(true)) => eval(&rest[1], env),
+            Ok(Node::Bool(false)) => eval(&rest[2], env),
+            _ => Err(format!("Condition must be a boolean: {condition:?}")),
+        }
+    } else if rest.len() == 2 {
+        let condition = eval(&rest[0], env);
+        match condition {
+            Ok(Node::Bool(true)) => eval(&rest[1], env),
+            Ok(Node::Bool(false)) => Ok(Node::List(vec![])),
+            _ => Err(format!("Condition must be a boolean: {condition:?}")),
+        }
+    } else {
+        Err("Invalid arguments for if".to_string())
     }
 }
 
@@ -45,11 +56,21 @@ fn eval_cond(rest: &[Node], env: &mut Environment) -> Result<Node, String> {
 }
 
 fn eval_define(rest: &[Node], env: &mut Environment) -> Result<Node, String> {
-    let variable = &rest[0];
-    let value = eval(&rest[1], env)?;
-    env.variables.insert(variable.clone(), value.clone());
+    if rest.len() == 2 {
+        let variable = &rest[0];
+        let value = eval(&rest[1], env)?;
+        env.variables.insert(variable.clone(), value.clone());
 
-    Ok(value)
+        Ok(value)
+    } else if rest.len() == 1 {
+        let variable = &rest[0];
+        let value = Node::Bool(true);
+        env.variables.insert(variable.clone(), value.clone());
+
+        Ok(value)
+    } else {
+        Err("Invalid arguments for define".to_string())
+    }
 }
 
 fn eval_lambda(rest: &[Node]) -> Result<Node, String> {
