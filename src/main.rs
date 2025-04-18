@@ -190,43 +190,6 @@ fn create_environment(env: &mut Environment) {
     env.add_function("and", compare::fn_and);
     env.add_function("or", compare::fn_or);
 
-    // List Manipulation
-    env.add_function("car", list::fn_car);
-    env.add_function("cdr", list::fn_cdr);
-    env.add_function("cons", list::fn_cons);
-    env.add_function("length", list::fn_length);
-    env.add_function("null?", list::fn_is_null);
-    env.add_function("list", list::fn_list);
-    env.add_function("last", list::fn_last);
-    env.add_function("nth", list::fn_nth);
-
-    // Time
-    env.add_function("time", time::fn_time);
-    env.add_function("now", time::fn_now);
-    env.add_function("add-days", time::fn_add_days);
-    env.add_function("add-hours", time::fn_add_hours);
-    env.add_function("add-minutes", time::fn_add_minutes);
-    env.add_function("add-seconds", time::fn_add_seconds);
-
-    // Sequence Manipulation
-    env.add_function("fold", sequence::fn_fold);
-    env.add_function("zip", sequence::fn_zip);
-    env.add_function("range", sequence::fn_range);
-    env.add_function("for-each", sequence::fn_for_each);
-    env.add_function("map", sequence::fn_map);
-    env.add_function("filter", sequence::fn_filter);
-
-    // String Manipulation
-    env.add_function("concat", string::fn_concat);
-    env.add_function("split", string::fn_split);
-    env.add_function("strip", string::fn_strip);
-    env.add_function("join", string::fn_join);
-    env.add_function("index-of", string::fn_index_of);
-    env.add_function("substring", string::fn_substring);
-    env.add_function("replace", string::fn_replace);
-    env.add_function("upper", string::fn_upper);
-    env.add_function("lower", string::fn_lower);
-
     // Conversion
     env.add_function("number->string", conversion::fn_number_to_string);
     env.add_function("string->number", conversion::fn_string_to_number);
@@ -247,6 +210,46 @@ fn create_environment(env: &mut Environment) {
     env.add_function("read-line", io::fn_read_line);
     env.add_function("read-file", io::fn_read_file);
 
+    // List Manipulation
+    env.add_function("car", list::fn_car);
+    env.add_function("cdr", list::fn_cdr);
+    env.add_function("cons", list::fn_cons);
+    env.add_function("length", list::fn_length);
+    env.add_function("null?", list::fn_is_null);
+    env.add_function("list", list::fn_list);
+    env.add_function("last", list::fn_last);
+    env.add_function("nth", list::fn_nth);
+
+    // Regex
+    env.add_function("regex", regex::fn_regex);
+    env.add_function("regex-match", regex::fn_regex_match);
+    env.add_function("regex-replace", regex::fn_regex_replace);
+    env.add_function("regex-split", regex::fn_regex_split);
+
+    // Sequence Manipulation
+    env.add_function("fold", sequence::fn_fold);
+    env.add_function("zip", sequence::fn_zip);
+    env.add_function("range", sequence::fn_range);
+    env.add_function("for-each", sequence::fn_for_each);
+    env.add_function("map", sequence::fn_map);
+    env.add_function("filter", sequence::fn_filter);
+
+    // String Manipulation
+    env.add_function("concat", string::fn_concat);
+    env.add_function("split", string::fn_split);
+    env.add_function("strip", string::fn_strip);
+    env.add_function("join", string::fn_join);
+    env.add_function("index-of", string::fn_index_of);
+    env.add_function("substring", string::fn_substring);
+    env.add_function("replace", string::fn_replace);
+    env.add_function("upper", string::fn_upper);
+    env.add_function("lower", string::fn_lower);
+
+    // System
+    env.add_function("system", system::fn_system);
+    env.add_function("version", system::fn_version);
+    env.add_function("exit", system::fn_exit);
+
     // Terminal
     env.add_function("clear", terminal::fn_clear);
     env.add_function("alternate-screen", terminal::fn_alternate_screen);
@@ -255,21 +258,19 @@ fn create_environment(env: &mut Environment) {
     env.add_function("bg", terminal::fn_bg);
     env.add_function("set-cursor-pos", terminal::fn_set_cursor_pos);
 
+    // Time
+    env.add_function("time", time::fn_time);
+    env.add_function("now", time::fn_now);
+    env.add_function("add-days", time::fn_add_days);
+    env.add_function("add-hours", time::fn_add_hours);
+    env.add_function("add-minutes", time::fn_add_minutes);
+    env.add_function("add-seconds", time::fn_add_seconds);
+
     // Utility
     env.add_function("begin", util::fn_begin);
     env.add_function("type?", util::fn_type);
     env.add_function("time-ms", util::fn_time_ms);
-
-    // System
-    env.add_function("system", system::fn_system);
-    env.add_function("version", system::fn_version);
-    env.add_function("exit", system::fn_exit);
-
-    // Regex
-    env.add_function("regex", regex::fn_regex);
-    env.add_function("regex-match", regex::fn_regex_match);
-    env.add_function("regex-replace", regex::fn_regex_replace);
-    env.add_function("regex-split", regex::fn_regex_split);
+    env.add_function("defined?", util::fn_is_defined);
 
 }
 

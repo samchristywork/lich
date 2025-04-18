@@ -45,3 +45,11 @@ pub fn fn_time_ms(arguments: &[Node], env: &mut Environment) -> Result<Node, Str
     }
     Err("Invalid arguments for time-ms".to_string())
 }
+
+pub fn fn_is_defined(arguments: &[Node], env: &mut Environment) -> Result<Node, String> {
+    if arguments.len() == 1 {
+        let name = &arguments[0];
+        return Ok(Node::Bool(env.lookup(name).is_some()));
+    }
+    Err("Invalid arguments for is-defined".to_string())
+}
