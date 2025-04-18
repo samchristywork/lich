@@ -270,6 +270,13 @@ fn create_environment(env: &mut Environment) {
     env.add_function("add-minutes", time::fn_add_minutes);
     env.add_function("add-seconds", time::fn_add_seconds);
 
+    // Tree Manipulation
+    env.add_function("leaves", tree::fn_leaves);
+    env.add_function("map-tree", tree::fn_map_tree);
+    env.add_function("filter-tree", tree::fn_filter_tree);
+    env.add_function("depth", tree::fn_depth);
+    env.add_function("format-tree", tree::fn_format_tree);
+
     // Utility
     env.add_function("begin", util::fn_begin);
     env.add_function("type?", util::fn_type);
