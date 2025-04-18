@@ -11,6 +11,7 @@ pub mod regex;
 pub mod sequence;
 pub mod string;
 pub mod system;
+pub mod terminal;
 pub mod time;
 pub mod tree;
 pub mod util;
@@ -237,6 +238,14 @@ fn create_environment(env: &mut Environment) {
     env.add_function("write-line", io::fn_write_line);
     env.add_function("read-line", io::fn_read_line);
     env.add_function("read-file", io::fn_read_file);
+
+    // Terminal
+    env.add_function("clear", terminal::fn_clear);
+    env.add_function("alternate-screen", terminal::fn_alternate_screen);
+    env.add_function("normal-screen", terminal::fn_alternate_screen);
+    env.add_function("fg", terminal::fn_fg);
+    env.add_function("bg", terminal::fn_bg);
+    env.add_function("set-cursor-pos", terminal::fn_set_cursor_pos);
 
     // Utility
     env.add_function("begin", util::fn_begin);
