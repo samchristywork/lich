@@ -220,6 +220,10 @@ fn create_environment(env: &mut Environment) {
     env.add_function("last", list::fn_last);
     env.add_function("nth", list::fn_nth);
 
+    // Parsing
+    env.add_function("tokenize", parse::fn_tokenize);
+    env.add_function("parse", parse::fn_parse);
+
     // Regex
     env.add_function("regex", regex::fn_regex);
     env.add_function("regex-match", regex::fn_regex_match);

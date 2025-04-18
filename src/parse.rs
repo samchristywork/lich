@@ -1,3 +1,4 @@
+use crate::Environment;
 use crate::Node;
 
 enum Token {
@@ -184,4 +185,34 @@ fn tokenize(source: &str) -> Result<Vec<Token>, String> {
     }
 
     Ok(tokens)
+}
+
+pub fn fn_tokenize(arguments: &[Node], env: &mut Environment) -> Result<Node, String> {
+    if arguments.len() == 1 {
+        if let Node::Text(text) = &arguments[0] {
+            let tokens = tokenize(text)?;
+            let mut result = Vec::new();
+            for token in tokens {
+                result.push(Node::Text(token.to_string()));
+            }
+            return Ok(Node::List(result));
+        }
+    }
+    Err(format!(
+        "Invalid arguments for tokenize: {:?}",
+        &arguments[0]
+    ))
+}
+
+pub fn fn_parse(arguments: &[Node], env: &mut Environment) -> Result<Node, String> {
+    if arguments.len() == 1 {
+        if let Node::Text(text) = &arguments[0] {
+            let parsed = parse(text)?;
+            return Ok(Node::List(parsed));
+        }
+    }
+    Err(format!(
+        "Invalid arguments for parse: {:?}",
+        &arguments[0]
+    ))
 }
