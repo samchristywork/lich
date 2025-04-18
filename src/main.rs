@@ -74,10 +74,10 @@ fn repl(env: &mut Environment, server: bool) -> Result<(), String> {
                     Ok(expressions) => {
                         for expression in expressions {
                             let result = eval(&expression, env);
-                            eprintln!("{GREY}{result:?}{NORMAL}");
+                            eprintln!("{result:?}");
 
                             // Send the result back to the client
-                            let response = format!("{GREY}{result:?}{NORMAL}\n");
+                            let response = format!("{result:?}\n");
                             stream
                                 .write_all(response.as_bytes())
                                 .map_err(|e| format!("Failed to write to stream: {e}"))?;
@@ -161,6 +161,14 @@ fn process_files(positional_args: &Vec<&String>, env: &mut Environment, verbose:
 }
 
 fn create_environment(env: &mut Environment) {
+    env.variables.insert(Node::Symbol("args".to_string()),
+    Node::List(
+        std::env::args()
+        .skip(1)
+        .map(|arg| Node::Text(arg))
+        .collect(),
+    ));
+
     // Arithmetic
     env.add_function("+", arithmetic::fn_add);
     env.add_function("-", arithmetic::fn_sub);
