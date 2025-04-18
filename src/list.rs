@@ -58,6 +58,14 @@ pub fn fn_length(arguments: &[Node], _: &mut Environment) -> Result<Node, String
             }
             return Err("Failed to convert length".to_string());
         }
+
+        if let Node::Text(text) = &arguments[0] {
+            let n = i64::try_from(text.len());
+            if let Ok(n) = n {
+                return Ok(Node::Number(n));
+            }
+            return Err("Failed to convert length".to_string());
+        }
     }
     Err(format!("Invalid arguments for length: {:?}", &arguments[0]))
 }
