@@ -73,6 +73,17 @@ fn eval_define(rest: &[Node], env: &mut Environment) -> Result<Node, String> {
     }
 }
 
+fn eval_undefine(rest: &[Node], env: &mut Environment) -> Result<Node, String> {
+    if rest.len() == 1 {
+        let variable = &rest[0];
+        env.variables.remove(variable);
+
+        Ok(Node::Bool(true))
+    } else {
+        Err("Invalid arguments for undefine".to_string())
+    }
+}
+
 fn eval_lambda(rest: &[Node]) -> Result<Node, String> {
     if rest.len() != 2 {
         return Err("Invalid arguments for lambda".to_string());
@@ -173,6 +184,7 @@ fn eval_list(nodes: &[Node], env: &mut Environment) -> Result<Node, String> {
                 "if" => eval_if(rest, env)?,
                 "cond" => eval_cond(rest, env)?,
                 "define" => eval_define(rest, env)?,
+                "undefine" => eval_undefine(rest, env)?,
                 "lambda" => eval_lambda(rest)?,
                 "let" => eval_let(rest, env)?,
                 "let-restricted" => eval_let_restricted(rest, env)?,
