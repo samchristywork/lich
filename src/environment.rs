@@ -2,8 +2,7 @@ use crate::node::Node;
 
 #[derive(Clone)]
 pub struct Environment {
-    // TODO: This shouldn't be public
-    pub parent: Option<Box<Environment>>,
+    parent: Option<Box<Environment>>,
     pub variables: std::collections::HashMap<Node, Node>,
 }
 
@@ -15,14 +14,17 @@ impl std::fmt::Display for Environment {
 
         writeln!(f, "Environment ID: {self:p}")?;
 
-        // Sort and print the variables
-        let mut items = self.variables.keys().map(|key| {
-            let value = self.variables.get(key);
-            match value {
-                Some(value) => format!("  {key} => {value}"),
-                None => format!("  {key} => <not found>"),
-            }
-        }).collect::<Vec<_>>();
+        let mut items = self
+            .variables
+            .keys()
+            .map(|key| {
+                let value = self.variables.get(key);
+                match value {
+                    Some(value) => format!("  {key} => {value}"),
+                    None => format!("  {key} => <not found>"),
+                }
+            })
+            .collect::<Vec<_>>();
 
         items.sort();
         for item in items {
@@ -34,6 +36,20 @@ impl std::fmt::Display for Environment {
 }
 
 impl Environment {
+    pub fn new() -> Self {
+        Environment {
+            parent: None,
+            variables: std::collections::HashMap::new(),
+        }
+    }
+
+    pub fn from_parent(parent: Environment) -> Self {
+        Environment {
+            parent: Some(Box::new(parent)),
+            variables: std::collections::HashMap::new(),
+        }
+    }
+
     #[must_use]
     pub fn lookup(&self, node: &Node) -> Option<Node> {
         if let Some(value) = self.variables.get(node) {

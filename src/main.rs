@@ -301,10 +301,7 @@ fn usage() {
 }
 
 fn main() {
-    let mut env = Environment {
-        parent: None,
-        variables: std::collections::HashMap::new(),
-    };
+    let mut env = Environment::new();
 
     create_environment(&mut env);
 

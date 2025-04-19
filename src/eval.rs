@@ -105,10 +105,7 @@ fn eval_let(rest: &[Node], env: &mut Environment) -> Result<Node, String> {
         let body = &rest[1];
 
         if let Node::List(bindings_list) = bindings {
-            let mut new_env = Environment {
-                parent: Some(Box::new(env.clone())),
-                variables: std::collections::HashMap::new(),
-            };
+            let mut new_env = Environment::from_parent(env.clone());
 
             for binding in bindings_list {
                 if let Node::List(binding_pair) = binding {
@@ -137,10 +134,7 @@ fn eval_let_restricted(rest: &[Node], env: &mut Environment) -> Result<Node, Str
         let body = &rest[1];
 
         if let Node::List(bindings_list) = bindings {
-            let mut new_env = Environment {
-                parent: None,
-                variables: std::collections::HashMap::new(),
-            };
+            let mut new_env = Environment::new();
 
             for binding in bindings_list {
                 if let Node::List(binding_pair) = binding {
@@ -218,10 +212,7 @@ pub fn apply(function: &Node, arguments: &[Node], env: &mut Environment) -> Resu
                                 arguments.len()
                             ));
                         }
-                        let mut new_env = Environment {
-                            parent: Some(Box::new(env.clone())),
-                            variables: std::collections::HashMap::new(),
-                        };
+                        let mut new_env = Environment::from_parent(env.clone());
                         for (param, arg) in params.iter().zip(arguments) {
                             new_env.variables.insert(param.clone(), arg.clone());
                         }
