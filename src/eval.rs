@@ -55,6 +55,19 @@ fn eval_cond(rest: &[Node], env: &mut Environment) -> Result<Node, String> {
     Err("No true condition found in cond".to_string())
 }
 
+fn eval_begin(rest: &[Node], env: &mut Environment) -> Result<Node, String> {
+    if rest.is_empty() {
+        return Ok(Node::List(vec![]));
+    }
+
+    let mut result = Node::List(vec![]);
+    for expr in rest {
+        result = eval(expr, env)?;
+    }
+
+    Ok(result)
+}
+
 fn eval_define(rest: &[Node], env: &mut Environment) -> Result<Node, String> {
     if rest.len() == 2 {
         let variable = &rest[0];
@@ -90,6 +103,37 @@ fn eval_undefine(rest: &[Node], env: &mut Environment) -> Result<Node, String> {
         Ok(Node::Bool(true))
     } else {
         Err("Invalid arguments for undefine".to_string())
+    }
+}
+
+fn eval_is_defined(rest: &[Node], env: &mut Environment) -> Result<Node, String> {
+    if rest.len() == 1 {
+        let variable = &rest[0];
+        let is_defined = env.lookup(variable).is_some();
+
+        Ok(Node::Bool(is_defined))
+    } else {
+        Err("Invalid arguments for defined?".to_string())
+    }
+}
+
+fn eval_get_type(rest: &[Node], env: &mut Environment) -> Result<Node, String> {
+    if rest.len() == 1 {
+        let value = eval(&rest[0], env)?;
+        let type_name = match value {
+            Node::Number(_) => "number",
+            Node::Text(_) => "text",
+            Node::Bool(_) => "bool",
+            Node::Function(_) => "function",
+            Node::Regex(_) => "regex",
+            Node::Time(_, _) => "time",
+            Node::Symbol(_) => "symbol",
+            Node::List(_) => "list",
+        };
+
+        Ok(Node::Text(type_name.to_string()))
+    } else {
+        Err("Invalid arguments for type?".to_string())
     }
 }
 
@@ -179,6 +223,17 @@ fn eval_let_restricted(rest: &[Node], env: &mut Environment) -> Result<Node, Str
     Err("Invalid arguments for let-restricted".to_string())
 }
 
+fn eval_time_ms(arguments: &[Node], env: &mut Environment) -> Result<Node, String> {
+    if arguments.len() == 1 {
+        let start = std::time::Instant::now();
+        eval(&arguments[0], env)?;
+        let duration = start.elapsed();
+        let result = duration.as_millis();
+        return Ok(Node::Number(result as i64));
+    }
+    Err("Invalid arguments for time-ms".to_string())
+}
+
 fn eval_list(nodes: &[Node], env: &mut Environment) -> Result<Node, String> {
     if nodes.is_empty() {
         return Ok(Node::List(vec![]));
@@ -195,11 +250,15 @@ fn eval_list(nodes: &[Node], env: &mut Environment) -> Result<Node, String> {
                 "quote" => rest[0].clone(),
                 "if" => eval_if(rest, env)?,
                 "cond" => eval_cond(rest, env)?,
+                "begin" => eval_begin(rest, env)?,
                 "define" => eval_define(rest, env)?,
                 "undefine" => eval_undefine(rest, env)?,
+                "defined?" => eval_is_defined(rest, env)?,
+                "type?" => eval_get_type(rest, env)?,
                 "lambda" => eval_lambda(rest)?,
                 "let" => eval_let(rest, env)?,
                 "let-restricted" => eval_let_restricted(rest, env)?,
+                "time-ms" => eval_time_ms(rest, env)?,
                 _ => {
                     let function = env
                         .lookup(first)

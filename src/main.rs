@@ -16,7 +16,6 @@ pub mod system;
 pub mod terminal;
 pub mod time;
 pub mod tree;
-pub mod util;
 
 use crate::environment::Environment;
 use crate::eval::eval;
@@ -163,13 +162,15 @@ fn process_files(positional_args: &Vec<&String>, env: &mut Environment, verbose:
 }
 
 fn create_environment(env: &mut Environment) {
-    env.variables.insert(Node::Symbol("args".to_string()),
-    Node::List(
-        std::env::args()
-        .skip(1)
-        .map(|arg| Node::Text(arg))
-        .collect(),
-    ));
+    env.insert(
+        "args",
+        Node::List(
+            std::env::args()
+                .skip(1)
+                .map(|arg| Node::Text(arg))
+                .collect(),
+        ),
+    );
 
     // Arithmetic
     env.add_function("+", arithmetic::fn_add);
@@ -206,7 +207,6 @@ fn create_environment(env: &mut Environment) {
 
     // I/O
     env.add_function("print-env", io::fn_print_env);
-    env.add_function("load", io::fn_load);
     env.add_function("write", io::fn_write);
     env.add_function("write-line", io::fn_write_line);
     env.add_function("read-line", io::fn_read_line);
@@ -281,13 +281,6 @@ fn create_environment(env: &mut Environment) {
     env.add_function("filter-tree", tree::fn_filter_tree);
     env.add_function("depth", tree::fn_depth);
     env.add_function("format-tree", tree::fn_format_tree);
-
-    // Utility
-    env.add_function("begin", util::fn_begin);
-    env.add_function("type?", util::fn_type);
-    env.add_function("time-ms", util::fn_time_ms);
-    env.add_function("defined?", util::fn_is_defined);
-
 }
 
 macro_rules! get_flag {
