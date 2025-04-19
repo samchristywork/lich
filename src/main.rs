@@ -2,11 +2,13 @@ pub mod arithmetic;
 pub mod compare;
 pub mod conversion;
 pub mod environment;
+pub mod error;
 pub mod eval;
 pub mod io;
 pub mod list;
 pub mod node;
 pub mod parse;
+pub mod random;
 pub mod regex;
 pub mod sequence;
 pub mod string;
@@ -223,6 +225,9 @@ fn create_environment(env: &mut Environment) {
     // Parsing
     env.add_function("tokenize", parse::fn_tokenize);
     env.add_function("parse", parse::fn_parse);
+
+    // Random
+    env.add_function("random-number", random::fn_random_number);
 
     // Regex
     env.add_function("regex", regex::fn_regex);
