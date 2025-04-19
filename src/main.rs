@@ -24,6 +24,7 @@ use crate::parse::parse;
 use std::io::BufRead;
 use std::io::Write;
 
+const RED: &str = "\x1b[31m";
 const GREY: &str = "\x1b[90m";
 const NORMAL: &str = "\x1b[0m";
 
@@ -123,7 +124,14 @@ fn repl(env: &mut Environment, server: bool) -> Result<(), String> {
             if let Ok(expressions) = parse(&input_string) {
                 for expression in expressions {
                     let result = eval(&expression, env);
-                    eprintln!("{GREY}{result:?}{NORMAL}");
+                    match result {
+                        Ok(node) => {
+                            println!("{GREY}{node}{NORMAL}");
+                        }
+                        Err(e) => {
+                            eprintln!("{RED}{e}{NORMAL}");
+                        }
+                    }
                 }
             } else {
                 eprintln!("Failed to parse input: {input_string}");
@@ -147,7 +155,7 @@ fn process_files(positional_args: &Vec<&String>, env: &mut Environment, verbose:
                     } else {
                         let result = eval(&expression, env);
                         if let Err(e) = result {
-                            eprintln!("{GREY}{e}{NORMAL}");
+                            eprintln!("{RED}{e}{NORMAL}");
                             return;
                         }
                     }

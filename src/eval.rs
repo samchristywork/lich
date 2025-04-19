@@ -22,6 +22,7 @@ fn eval_if(rest: &[Node], env: &mut Environment) -> Result<Node, String> {
         match condition {
             Ok(Node::Bool(true)) => eval(&rest[1], env),
             Ok(Node::Bool(false)) => eval(&rest[2], env),
+            Err(e) => Err(e),
             _ => Err(format!("Condition must be a boolean: {condition:?}")),
         }
     } else if rest.len() == 2 {
@@ -29,6 +30,7 @@ fn eval_if(rest: &[Node], env: &mut Environment) -> Result<Node, String> {
         match condition {
             Ok(Node::Bool(true)) => eval(&rest[1], env),
             Ok(Node::Bool(false)) => Ok(Node::List(vec![])),
+            Err(e) => Err(e),
             _ => Err(format!("Condition must be a boolean: {condition:?}")),
         }
     } else {
@@ -271,7 +273,11 @@ fn eval_list(nodes: &[Node], env: &mut Environment) -> Result<Node, String> {
                 }
             }
         }
-        _ => return Err(format!("Invalid expression: {first:?}")),
+        _ => {
+            return Err(format!(
+                "Invalid expression: {first:?}\nDid you mean to quote it?"
+            ));
+        }
     })
 }
 
