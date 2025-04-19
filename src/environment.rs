@@ -3,7 +3,7 @@ use crate::node::Node;
 #[derive(Clone)]
 pub struct Environment {
     parent: Option<Box<Environment>>,
-    pub variables: std::collections::HashMap<Node, Node>,
+    variables: std::collections::HashMap<String, Node>,
 }
 
 impl std::fmt::Display for Environment {
@@ -50,15 +50,28 @@ impl Environment {
         }
     }
 
+    pub fn insert(&mut self, name: &str, value: Node) {
+        self.variables.insert(name.to_string(), value);
+    }
+
+    pub fn remove(&mut self, name: &str) {
+        self.variables.remove(name);
+    }
+
     #[must_use]
     pub fn lookup(&self, node: &Node) -> Option<Node> {
-        if let Some(value) = self.variables.get(node) {
-            return Some(value.clone());
-        } else if let Some(parent) = &self.parent {
-            return parent.lookup(node);
+        match node {
+            Node::Symbol(name) => {
+                if let Some(value) = self.variables.get(name) {
+                    Some(value.clone())
+                } else if let Some(parent) = &self.parent {
+                    parent.lookup(node)
+                } else {
+                    None
+                }
+            }
+            _ => None,
         }
-
-        None
     }
 
     pub fn add_function(
@@ -67,6 +80,6 @@ impl Environment {
         function: fn(&[Node], &mut Self) -> Result<Node, String>,
     ) {
         self.variables
-            .insert(Node::Symbol(name.to_string()), Node::Function(function));
+            .insert(name.to_string(), Node::Function(function));
     }
 }

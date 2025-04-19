@@ -59,13 +59,19 @@ fn eval_define(rest: &[Node], env: &mut Environment) -> Result<Node, String> {
     if rest.len() == 2 {
         let variable = &rest[0];
         let value = eval(&rest[1], env)?;
-        env.variables.insert(variable.clone(), value.clone());
+        match variable {
+            Node::Symbol(s) => env.insert(s, value.clone()),
+            _ => return Err(format!("Invalid variable in define: {variable:?}")),
+        }
 
         Ok(value)
     } else if rest.len() == 1 {
         let variable = &rest[0];
         let value = Node::Bool(true);
-        env.variables.insert(variable.clone(), value.clone());
+        match variable {
+            Node::Symbol(s) => env.insert(s, value.clone()),
+            _ => return Err(format!("Invalid variable in define: {variable:?}")),
+        }
 
         Ok(value)
     } else {
@@ -76,7 +82,10 @@ fn eval_define(rest: &[Node], env: &mut Environment) -> Result<Node, String> {
 fn eval_undefine(rest: &[Node], env: &mut Environment) -> Result<Node, String> {
     if rest.len() == 1 {
         let variable = &rest[0];
-        env.variables.remove(variable);
+        match variable {
+            Node::Symbol(s) => env.remove(s),
+            _ => return Err(format!("Invalid variable in undefine: {variable:?}")),
+        }
 
         Ok(Node::Bool(true))
     } else {
@@ -112,7 +121,10 @@ fn eval_let(rest: &[Node], env: &mut Environment) -> Result<Node, String> {
                     if binding_pair.len() == 2 {
                         let variable = &binding_pair[0];
                         let value = eval(&binding_pair[1], env)?;
-                        new_env.variables.insert(variable.clone(), value);
+                        match variable {
+                            Node::Symbol(s) => new_env.insert(s, value),
+                            _ => return Err(format!("Invalid variable in let: {variable:?}")),
+                        }
                     } else {
                         return Err("Invalid binding pair".to_string());
                     }
@@ -141,11 +153,17 @@ fn eval_let_restricted(rest: &[Node], env: &mut Environment) -> Result<Node, Str
                     if binding_pair.len() == 1 {
                         let variable = &binding_pair[0];
                         let value = eval(&binding_pair[0], env)?;
-                        new_env.variables.insert(variable.clone(), value);
+                        match variable {
+                            Node::Symbol(s) => new_env.insert(s, value),
+                            _ => return Err(format!("Invalid variable in let-restricted: {variable:?}")),
+                        }
                     } else if binding_pair.len() == 2 {
                         let variable = &binding_pair[0];
                         let value = eval(&binding_pair[1], env)?;
-                        new_env.variables.insert(variable.clone(), value);
+                        match variable {
+                            Node::Symbol(s) => new_env.insert(s, value),
+                            _ => return Err(format!("Invalid variable in let-restricted: {variable:?}")),
+                        }
                     } else {
                         return Err("Invalid binding pair".to_string());
                     }
@@ -214,9 +232,18 @@ pub fn apply(function: &Node, arguments: &[Node], env: &mut Environment) -> Resu
                         }
                         let mut new_env = Environment::from_parent(env.clone());
                         for (param, arg) in params.iter().zip(arguments) {
-                            new_env.variables.insert(param.clone(), arg.clone());
+                            match param {
+                                Node::Symbol(s) => new_env.insert(s, arg.clone()),
+                                _ => return Err(format!("Invalid parameter in lambda: {param:?}")),
+                            }
                         }
-                        return eval(&nodes[2], &mut new_env);
+                        return match eval(&nodes[2], &mut new_env) {
+                            Ok(result) => Ok(result),
+                            Err(e) => {
+                                println!("Error evaluating lambda body: {function:?}");
+                                Err(e)
+                            }
+                        };
                     }
                 }
             }
@@ -224,6 +251,9 @@ pub fn apply(function: &Node, arguments: &[Node], env: &mut Environment) -> Resu
                 "Function application not implemented: {function:?}"
             ));
         }
-        _ => return Err(format!("Invalid function: {function:?}")),
+        _ => {
+            println!("Invalid function: {function:?}");
+            return Err(format!("Invalid function: {function:?}"));
+        }
     })
 }

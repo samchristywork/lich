@@ -136,14 +136,17 @@ fn format_tree_helper(node: &Node, depth: usize) -> String {
     result
 }
 
-pub fn fn_format_tree(arguments: &[Node], env: &mut Environment) -> Result<Node, String> {
+pub fn fn_format_tree(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
     if arguments.len() == 1 {
         let list = &arguments[0];
 
-        if let Node::List(l) = list {
+        if let Node::List(_) = list {
             let formatted_tree = format_tree_helper(list, 0);
             return Ok(Node::Text(formatted_tree));
         }
     }
-    Err(format!("Invalid arguments for format-tree: {:?}", &arguments[0]))
+    Err(format!(
+        "Invalid arguments for format-tree: {:?}",
+        &arguments[0]
+    ))
 }
