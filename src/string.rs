@@ -1,6 +1,6 @@
 use crate::environment::Environment;
-use crate::node::Node;
 use crate::invalid_arguments;
+use crate::node::Node;
 
 //- (test "concat" (concat (quote (1 2)) (quote (3 4))) (quote (1 2 3 4)))
 //- (test "concat" (concat "Foo" "Bar") "FooBar")
@@ -12,9 +12,7 @@ pub fn fn_concat(arguments: &[Node], _: &mut Environment) -> Result<Node, String
             new_list.extend_from_slice(l2);
             Ok(Node::List(new_list))
         }
-        [Node::Text(s1), Node::Text(s2)] => {
-            Ok(Node::Text(format!("{s1}{s2}")))
-        }
+        [Node::Text(s1), Node::Text(s2)] => Ok(Node::Text(format!("{s1}{s2}"))),
         _ => {
             invalid_arguments!(
                 "concat",
@@ -31,7 +29,10 @@ pub fn fn_concat(arguments: &[Node], _: &mut Environment) -> Result<Node, String
 pub fn fn_split(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
     match arguments {
         [Node::Text(delimiter), Node::Text(text)] => {
-            let split = text.split(delimiter).map(|s| Node::Text(s.to_string())).collect();
+            let split = text
+                .split(delimiter)
+                .map(|s| Node::Text(s.to_string()))
+                .collect();
             Ok(Node::List(split))
         }
         _ => {
@@ -45,9 +46,7 @@ pub fn fn_split(arguments: &[Node], _: &mut Environment) -> Result<Node, String>
 //- (test "strip" (strip "") "")
 pub fn fn_strip(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
     match arguments {
-        [Node::Text(s)] => {
-            Ok(Node::Text(s.trim().to_string()))
-        }
+        [Node::Text(s)] => Ok(Node::Text(s.trim().to_string())),
         _ => {
             invalid_arguments!("strip", arguments, ["[Text(s)]"])
         }
@@ -80,21 +79,13 @@ pub fn fn_join(arguments: &[Node], _: &mut Environment) -> Result<Node, String> 
 //- (test "index-of" (index-of "bar" "foobar") 3)
 pub fn fn_index_of(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
     match arguments {
-        [Node::Text(substring), Node::Text(text)] => {
-            match text.find(substring) {
-                Some(index) => {
-                    match index.try_into() {
-                        Ok(index) => Ok(Node::Number(index)),
-                        Err(_) => Err(format!(
-                            "Index {index} is too large for a Number",
-                        )),
-                    }
-                }
-                None => Err(format!(
-                    "Substring '{substring}' not found in '{text}'",
-                )),
-            }
-        }
+        [Node::Text(substring), Node::Text(text)] => match text.find(substring) {
+            Some(index) => match index.try_into() {
+                Ok(index) => Ok(Node::Number(index)),
+                Err(_) => Err(format!("Index {index} is too large for a Number",)),
+            },
+            None => Err(format!("Substring '{substring}' not found in '{text}'",)),
+        },
         _ => {
             invalid_arguments!("index-of", arguments, ["[Text(substring), Text(text)]"])
         }
@@ -107,23 +98,27 @@ pub fn fn_index_of(arguments: &[Node], _: &mut Environment) -> Result<Node, Stri
 pub fn fn_substring(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
     match arguments {
         [Node::Text(text), Node::Number(start), Node::Number(end)] => {
-            let start = usize::try_from(*start).map_err(|_| {
-                format!("Start index {start} is too large for a Number")
-            })?;
-            let end = usize::try_from(*end).map_err(|_| {
-                format!("End index {end} is too large for a Number")
-            })?;
+            let start = usize::try_from(*start)
+                .map_err(|_| format!("Start index {start} is too large for a Number"))?;
+            let end = usize::try_from(*end)
+                .map_err(|_| format!("End index {end} is too large for a Number"))?;
             if start <= end && end <= text.len() {
                 Ok(Node::Text(text[start..end].to_string()))
             } else {
                 Err(format!(
                     "Invalid substring range: {}..{} for text of length {}",
-                    start, end, text.len()
+                    start,
+                    end,
+                    text.len()
                 ))
             }
         }
         _ => {
-            invalid_arguments!("substring", arguments, ["[Text(text), Number(start), Number(end)]"])
+            invalid_arguments!(
+                "substring",
+                arguments,
+                ["[Text(text), Number(start), Number(end)]"]
+            )
         }
     }
 }
@@ -148,9 +143,7 @@ pub fn fn_replace(arguments: &[Node], _: &mut Environment) -> Result<Node, Strin
 //- (test "upper" (upper "") "")
 pub fn fn_upper(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
     match arguments {
-        [Node::Text(s)] => {
-            Ok(Node::Text(s.to_uppercase()))
-        }
+        [Node::Text(s)] => Ok(Node::Text(s.to_uppercase())),
         _ => {
             invalid_arguments!("upper", arguments, ["[Text(s)]"])
         }
@@ -162,9 +155,7 @@ pub fn fn_upper(arguments: &[Node], _: &mut Environment) -> Result<Node, String>
 //- (test "lower" (lower "") "")
 pub fn fn_lower(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
     match arguments {
-        [Node::Text(s)] => {
-            Ok(Node::Text(s.to_lowercase()))
-        }
+        [Node::Text(s)] => Ok(Node::Text(s.to_lowercase())),
         _ => {
             invalid_arguments!("lower", arguments, ["[Text(s)]"])
         }

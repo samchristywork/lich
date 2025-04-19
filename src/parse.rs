@@ -4,6 +4,7 @@ use crate::Node;
 enum Token {
     Symbol(String),
     Number(i64),
+    Float(f64),
     Text(String),
     Bool(bool),
     LParen,
@@ -15,6 +16,7 @@ impl std::fmt::Display for Token {
         match self {
             Self::Symbol(s) => write!(f, "Symbol({s})"),
             Self::Number(n) => write!(f, "Number({n})"),
+            Self::Float(x) => write!(f, "Float({x})"),
             Self::Text(s) => write!(f, "Text({s})"),
             Self::Bool(b) => write!(f, "Bool({b})"),
             Self::LParen => write!(f, "("),
@@ -73,33 +75,13 @@ pub fn parse(input: &str) -> Result<Vec<Node>, String> {
             }
             Token::Symbol(s) => current_list.push(Node::Symbol(s.clone())),
             Token::Number(n) => current_list.push(Node::Number(n)),
+            Token::Float(x) => current_list.push(Node::Float(x)),
             Token::Text(s) => current_list.push(Node::Text(s.clone())),
             Token::Bool(b) => current_list.push(Node::Bool(b)),
         }
     }
 
     Ok(current_list)
-}
-
-fn is_valid_number(value: &str) -> Result<bool, String> {
-    assert!(
-        !value.is_empty(),
-        "Empty string is not a valid number or symbol"
-    );
-
-    Ok(if value == "-" {
-        false
-    } else if value.len() == 1 {
-        value
-            .chars()
-            .next()
-            .ok_or_else(|| "Could not parse number".to_string())?
-            .is_ascii_digit()
-    } else if value[0..1] == *"-" {
-        value[1..].chars().all(|c| c.is_ascii_digit())
-    } else {
-        value.chars().all(|c| c.is_ascii_digit())
-    })
 }
 
 fn tokenize(source: &str) -> Result<Vec<Token>, String> {
@@ -156,7 +138,7 @@ fn tokenize(source: &str) -> Result<Vec<Token>, String> {
             c if is_symbol_char!(c) => {
                 let mut value = String::from(c);
                 while let Some(&(_, next_c)) = chars.peek() {
-                    if is_symbol_char!(next_c) {
+                    if is_symbol_char!(next_c) || next_c == '.' {
                         value.push(next_c);
                         chars.next();
                     } else {
@@ -165,11 +147,10 @@ fn tokenize(source: &str) -> Result<Vec<Token>, String> {
                 }
 
                 // Numbers are a strict subset of symbols, so we check for numbers first
-                if is_valid_number(&value)? {
-                    tokens.push(Token::Number(match value.parse::<i64>() {
-                        Ok(n) => n,
-                        Err(_) => return Err("Could not parse number".to_string()),
-                    }));
+                if let Ok(n) = value.parse::<i64>() {
+                    tokens.push(Token::Number(n));
+                } else if let Ok(x) = value.parse::<f64>() {
+                    tokens.push(Token::Float(x));
 
                 // Booleans are a strict subset of symbols, so we check for booleans next
                 } else if value == "true" {

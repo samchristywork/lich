@@ -114,3 +114,12 @@ pub fn fn_time_to_number(arguments: &[Node], _: &mut Environment) -> Result<Node
     }
     Err("Invalid arguments for time->number".to_string())
 }
+
+pub fn fn_number_to_float(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
+    if arguments.len() == 1 {
+        if let Node::Number(n) = &arguments[0] {
+            return Ok(Node::Float(*n as f64));
+        }
+    }
+    Err("Invalid arguments for number->float".to_string())
+}

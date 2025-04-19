@@ -5,6 +5,7 @@ use chrono::TimeZone;
 pub enum Node {
     Symbol(String),
     Number(i64),
+    Float(f64),
     Text(String),
     Bool(bool),
     List(Vec<Node>),
@@ -18,6 +19,7 @@ impl std::fmt::Display for Node {
         let res = match self {
             Self::Number(n) => n.to_string(),
             Self::Bool(b) => b.to_string(),
+            Self::Float(f) => f.to_string(),
             Self::Time(t, z) => {
                 let local_time = chrono::Utc
                     .timestamp_opt(*t, 0)

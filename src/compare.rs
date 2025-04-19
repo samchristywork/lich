@@ -12,6 +12,7 @@ pub fn fn_eq(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
         [Node::List(a), Node::List(b)] => Ok(Node::Bool(a == b)),
         [Node::Bool(a), Node::Bool(b)] => Ok(Node::Bool(a == b)),
         [Node::Symbol(a), Node::Symbol(b)] => Ok(Node::Bool(a == b)),
+        [Node::Float(a), Node::Float(b)] => Ok(Node::Bool(a == b)),
         [Node::Time(t1, z1), Node::Time(t2, z2)] => Ok(Node::Bool(t1 == t2 && z1 == z2)),
         _ => invalid_arguments!(
             "=",

@@ -8,7 +8,12 @@ use crate::node::Node;
 pub fn fn_add(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
     match arguments {
         [Node::Number(a), Node::Number(b)] => Ok(Node::Number(a + b)),
-        _ => invalid_arguments!("+", arguments, ["[Number(a), Number(b)]"]),
+        [Node::Float(a), Node::Float(b)] => Ok(Node::Float(a + b)),
+        _ => invalid_arguments!(
+            "+",
+            arguments,
+            ["[Number(a), Number(b)]", "[Float(a), Float(b)]"]
+        ),
     }
 }
 
@@ -18,7 +23,12 @@ pub fn fn_add(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
 pub fn fn_sub(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
     match arguments {
         [Node::Number(a), Node::Number(b)] => Ok(Node::Number(a - b)),
-        _ => invalid_arguments!("-", arguments, ["[Number(a), Number(b)]"]),
+        [Node::Float(a), Node::Float(b)] => Ok(Node::Float(a - b)),
+        _ => invalid_arguments!(
+            "-",
+            arguments,
+            ["[Number(a), Number(b)]", "[Float(a), Float(b)]"]
+        ),
     }
 }
 
@@ -28,7 +38,24 @@ pub fn fn_sub(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
 pub fn fn_mult(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
     match arguments {
         [Node::Number(a), Node::Number(b)] => Ok(Node::Number(a * b)),
-        _ => invalid_arguments!("*", arguments, ["[Number(a), Number(b)]"]),
+        [Node::Float(a), Node::Float(b)] => Ok(Node::Float(a * b)),
+        _ => invalid_arguments!(
+            "*",
+            arguments,
+            ["[Number(a), Number(b)]", "[Float(a), Float(b)]"]
+        ),
+    }
+}
+
+pub fn fn_div(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
+    match arguments {
+        [Node::Float(a), Node::Float(b)] => {
+            if *b == 0.0 {
+                return Err("Division by zero".to_string());
+            }
+            Ok(Node::Float(a / b))
+        }
+        _ => invalid_arguments!("/", arguments, ["[Float(a), Float(b)]"]),
     }
 }
 
@@ -78,7 +105,23 @@ pub fn fn_dec(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
 pub fn fn_abs(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
     match arguments {
         [Node::Number(num)] => Ok(Node::Number(num.abs())),
-        _ => invalid_arguments!("abs", arguments, ["[Number(num)]"]),
+        [Node::Float(num)] => Ok(Node::Float(num.abs())),
+        _ => invalid_arguments!("abs", arguments, ["[Number(num)]", "[Float(num)]"]),
+    }
+}
+
+//- (test "pow" (pow 2 3) 8)
+//- (test "pow" (pow 2 0) 1)
+//- (test "pow" (pow 0 2) 0)
+pub fn fn_pow(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
+    match arguments {
+        [Node::Number(base), Node::Number(exp)] => Ok(Node::Number(base.pow(*exp as u32))),
+        [Node::Float(base), Node::Float(exp)] => Ok(Node::Float(base.powf(*exp))),
+        _ => invalid_arguments!(
+            "pow",
+            arguments,
+            ["[Number(base), Number(exp)]", "[Float(base), Float(exp)]"]
+        ),
     }
 }
 

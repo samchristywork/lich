@@ -184,11 +184,13 @@ fn create_environment(env: &mut Environment) {
     env.add_function("+", arithmetic::fn_add);
     env.add_function("-", arithmetic::fn_sub);
     env.add_function("*", arithmetic::fn_mult);
+    env.add_function("/", arithmetic::fn_div);
     env.add_function("even?", arithmetic::fn_is_even);
     env.add_function("odd?", arithmetic::fn_is_odd);
     env.add_function("inc", arithmetic::fn_inc);
     env.add_function("dec", arithmetic::fn_dec);
     env.add_function("abs", arithmetic::fn_abs);
+    env.add_function("pow", arithmetic::fn_pow);
     env.add_function("negate", arithmetic::fn_negate);
 
     // Comparison
@@ -212,6 +214,7 @@ fn create_environment(env: &mut Environment) {
     env.add_function("boolean->string", conversion::fn_boolean_to_string);
     env.add_function("time->string", conversion::fn_time_to_string);
     env.add_function("time->number", conversion::fn_time_to_number);
+    env.add_function("number->float", conversion::fn_number_to_float);
 
     // I/O
     env.add_function("print-env", io::fn_print_env);

@@ -9,6 +9,7 @@ pub fn eval(node: &Node, env: &mut Environment) -> Result<Node, String> {
         Node::Number(_)
         | Node::Text(_)
         | Node::Bool(_)
+        | Node::Float(_)
         | Node::Function(_)
         | Node::Regex(_)
         | Node::Time(_, _) => Ok(node.clone()),
@@ -125,6 +126,7 @@ fn eval_get_type(rest: &[Node], env: &mut Environment) -> Result<Node, String> {
         let type_name = match value {
             Node::Number(_) => "number",
             Node::Text(_) => "text",
+            Node::Float(_) => "float",
             Node::Bool(_) => "bool",
             Node::Function(_) => "function",
             Node::Regex(_) => "regex",
@@ -201,14 +203,22 @@ fn eval_let_restricted(rest: &[Node], env: &mut Environment) -> Result<Node, Str
                         let value = eval(&binding_pair[0], env)?;
                         match variable {
                             Node::Symbol(s) => new_env.insert(s, value),
-                            _ => return Err(format!("Invalid variable in let-restricted: {variable:?}")),
+                            _ => {
+                                return Err(format!(
+                                    "Invalid variable in let-restricted: {variable:?}"
+                                ));
+                            }
                         }
                     } else if binding_pair.len() == 2 {
                         let variable = &binding_pair[0];
                         let value = eval(&binding_pair[1], env)?;
                         match variable {
                             Node::Symbol(s) => new_env.insert(s, value),
-                            _ => return Err(format!("Invalid variable in let-restricted: {variable:?}")),
+                            _ => {
+                                return Err(format!(
+                                    "Invalid variable in let-restricted: {variable:?}"
+                                ));
+                            }
                         }
                     } else {
                         return Err("Invalid binding pair".to_string());
