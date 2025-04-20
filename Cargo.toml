@@ -1,6 +1,6 @@
 [package]
 name = "lich"
-version = "2025.4.15"
+version = "2025.4.20"
 edition = "2024"
 
 [dependencies]

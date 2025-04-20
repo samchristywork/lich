@@ -1,5 +1,6 @@
 use crate::environment::Environment;
 use crate::node::Node;
+use crate::invalid_arguments;
 
 pub fn eval(node: &Node, env: &mut Environment) -> Result<Node, String> {
     match node {
@@ -148,7 +149,10 @@ pub fn eval_print_env(_: &[Node], env: &mut Environment) -> Result<Node, String>
 
 fn eval_lambda(rest: &[Node]) -> Result<Node, String> {
     if rest.len() != 2 {
-        return Err("Invalid arguments for lambda".to_string());
+        return Err(format!(
+            "Invalid arguments for lambda: expected 2, got {}",
+            rest.len()
+        ));
     }
 
     let parameters = rest[0].clone();
@@ -159,6 +163,76 @@ fn eval_lambda(rest: &[Node]) -> Result<Node, String> {
         parameters,
         body,
     ]))
+}
+
+//- (test "map" (map inc (quote (1 2 3))) (quote (2 3 4)))
+//- (test "map" (map inc (quote ())) (quote ()))
+//- (test "map" (map inc (quote (1))) (quote (2)))
+fn eval_map(rest: &[Node], env: &mut Environment) -> Result<Node, String> {
+    let rest = rest.into_iter().map(|n| eval(n, env)).collect::<Result<Vec<_>, _>>()?;
+    match &rest[..] {
+        [function, Node::List(list)] => {
+            let mut mapped = Vec::new();
+            for item in list {
+                mapped.push(apply(function, &[item.clone()], env)?);
+            }
+            Ok(Node::List(mapped))
+        }
+        _ => invalid_arguments!("map", rest, ["[Any(function), List(list)]"]),
+    }
+}
+
+//- (test "filter" (filter even? (quote (1 2 3 4))) (quote (2 4)))
+//- (test "filter" (filter even? (quote ())) (quote ()))
+//- (test "filter" (filter even? (quote (1))) (quote ()))
+fn eval_filter(rest: &[Node], env: &mut Environment) -> Result<Node, String> {
+    let rest = rest.into_iter().map(|n| eval(n, env)).collect::<Result<Vec<_>, _>>()?;
+    match &rest[..] {
+        [function, Node::List(list)] => {
+            let mut filtered = Vec::new();
+            for item in list {
+                if let Node::Bool(true) = apply(function, &[item.clone()], env)? {
+                    filtered.push(item.clone());
+                }
+            }
+            Ok(Node::List(filtered))
+        }
+        _ => invalid_arguments!("filter", rest, ["[Any(function), List(list)]"]),
+    }
+}
+
+//- (test "fold" (fold + 0 (quote (1 2 3))) 6)
+//- (test "fold" (fold + 0 (quote ())) 0)
+//- (test "fold" (fold + 0 (quote (1))) 1)
+fn eval_fold(rest: &[Node], env: &mut Environment) -> Result<Node, String> {
+    let rest = rest.into_iter().map(|n| eval(n, env)).collect::<Result<Vec<_>, _>>()?;
+    match &rest[..] {
+        [function, initial_value, Node::List(list)] => {
+            let mut result = initial_value.clone();
+            for item in list {
+                result = apply(function, &[result, item.clone()], env)?;
+            }
+            Ok(result)
+        }
+        _ => invalid_arguments!(
+            "fold",
+            rest,
+            ["[Any(function), Any(initial_value), List(list)]"]
+        ),
+    }
+}
+
+fn eval_eval(rest: &[Node], env: &mut Environment) -> Result<Node, String> {
+    let rest = rest.into_iter().map(|n| eval(n, env)).collect::<Result<Vec<_>, _>>()?;
+    match &rest[..] {
+        [Node::List(nodes)] => {
+            for node in nodes {
+                eval(node, env)?;
+            }
+            Ok(Node::List(nodes.to_vec()))
+        }
+        _ => invalid_arguments!("eval", rest, ["[List(nodes)]"]),
+    }
 }
 
 fn eval_let(rest: &[Node], env: &mut Environment) -> Result<Node, String> {
@@ -240,10 +314,10 @@ fn eval_let_restricted(rest: &[Node], env: &mut Environment) -> Result<Node, Str
     Err("Invalid arguments for let-restricted".to_string())
 }
 
-fn eval_time_ms(arguments: &[Node], env: &mut Environment) -> Result<Node, String> {
-    if arguments.len() == 1 {
+fn eval_time_ms(rest: &[Node], env: &mut Environment) -> Result<Node, String> {
+    if rest.len() == 1 {
         let start = std::time::Instant::now();
-        eval(&arguments[0], env)?;
+        eval(&rest[0], env)?;
         let duration = start.elapsed();
         let result = duration.as_millis();
         return Ok(Node::Number(result as i64));
@@ -274,6 +348,10 @@ fn eval_list(nodes: &[Node], env: &mut Environment) -> Result<Node, String> {
                 "type?" => eval_get_type(rest, env)?,
                 "print-env" => eval_print_env(rest, env)?,
                 "lambda" => eval_lambda(rest)?,
+                "map" => eval_map(rest, env)?,
+                "filter" => eval_filter(rest, env)?,
+                "fold" => eval_fold(rest, env)?,
+                "eval" => eval_eval(rest, env)?,
                 "let" => eval_let(rest, env)?,
                 "let-restricted" => eval_let_restricted(rest, env)?,
                 "time-ms" => eval_time_ms(rest, env)?,

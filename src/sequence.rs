@@ -1,7 +1,6 @@
 use crate::invalid_arguments;
 use crate::node::Node;
 
-
 //- (test "zip" (zip (quote (1 2 3)) (quote (4 5 6))) (quote ((1 4) (2 5) (3 6))))
 //- (test "zip" (zip (quote ()) (quote ())) (quote ()))
 //- (test "zip" (zip (quote (1)) (quote (2))) (quote ((1 2))))
@@ -61,6 +60,3 @@ pub fn fn_range(arguments: &[Node]) -> Result<Node, String> {
         ),
     }
 }
-
-
-
