@@ -87,6 +87,19 @@ fn tokenize(source: &str) -> Result<Vec<Token>, String> {
     let mut tokens = Vec::new();
     let mut chars = source.char_indices().peekable();
 
+    if let Some((_, '#')) = chars.peek() {
+        chars.next();
+        if let Some((_, '!')) = chars.peek() {
+            chars.next();
+            while let Some(&(_, c)) = chars.peek() {
+                if c == '\n' {
+                    break;
+                }
+                chars.next();
+            }
+        }
+    }
+
     while let Some((_, c)) = chars.next() {
         match c {
             ';' => {
