@@ -160,3 +160,27 @@ pub fn fn_lower(arguments: &[Node]) -> Result<Node, String> {
         }
     }
 }
+
+//- (test "starts-with?" (starts-with? "foo" "foobar") true)
+//- (test "starts-with?" (starts-with? "bar" "foobar") false)
+//- (test "starts-with?" (starts-with? "" "foobar") true)
+pub fn fn_starts_with(arguments: &[Node]) -> Result<Node, String> {
+    match arguments {
+        [Node::Text(prefix), Node::Text(text)] => Ok(Node::Bool(text.starts_with(prefix))),
+        _ => {
+            invalid_arguments!("starts-with", arguments, ["[Text(prefix), Text(text)]"])
+        }
+    }
+}
+
+//- (test "ends-with?" (ends-with? "bar" "foobar") true)
+//- (test "ends-with?" (ends-with? "foo" "foobar") false)
+//- (test "ends-with?" (ends-with? "" "foobar") true)
+pub fn fn_ends_with(arguments: &[Node]) -> Result<Node, String> {
+    match arguments {
+        [Node::Text(suffix), Node::Text(text)] => Ok(Node::Bool(text.ends_with(suffix))),
+        _ => {
+            invalid_arguments!("ends-with", arguments, ["[Text(suffix), Text(text)]"])
+        }
+    }
+}

@@ -260,6 +260,8 @@ fn create_environment(env: &mut Environment) {
     env.add_function("replace", string::fn_replace);
     env.add_function("upper", string::fn_upper);
     env.add_function("lower", string::fn_lower);
+    env.add_function("starts-with?", string::fn_starts_with);
+    env.add_function("ends-with?", string::fn_ends_with);
 
     // System
     env.add_function("system", system::fn_system);
