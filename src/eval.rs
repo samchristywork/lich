@@ -178,7 +178,19 @@ fn eval_map(rest: &[Node], env: &mut Environment) -> Result<Node, String> {
             }
             Ok(Node::List(mapped))
         }
-        _ => invalid_arguments!("map", rest, ["[Any(function), List(list)]"]),
+        [function, Node::List(list), Node::List(args)] => {
+            let mut mapped = Vec::new();
+            for item in list {
+                let mut new_args = vec![item.clone()];
+                new_args.extend(args.iter().cloned());
+                mapped.push(apply(function, &new_args, env)?);
+            }
+            Ok(Node::List(mapped))
+        }
+        _ => invalid_arguments!("map", rest, [
+            "[Any(function), List(list)]",
+            "[Any(function), List(list), List(args)]"
+        ]),
     }
 }
 
