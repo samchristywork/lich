@@ -219,6 +219,7 @@ fn create_environment(env: &mut Environment) {
     // I/O
     env.add_function("write", io::fn_write);
     env.add_function("write-line", io::fn_write_line);
+    env.add_function("write-file", io::fn_write_file);
     env.add_function("read-line", io::fn_read_line);
     env.add_function("read-file", io::fn_read_file);
 
