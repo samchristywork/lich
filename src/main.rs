@@ -217,11 +217,14 @@ fn create_environment(env: &mut Environment) {
     env.add_function("number->float", conversion::fn_number_to_float);
 
     // I/O
+    env.add_function("format", io::fn_format);
     env.add_function("write", io::fn_write);
     env.add_function("write-line", io::fn_write_line);
     env.add_function("write-file", io::fn_write_file);
     env.add_function("read-line", io::fn_read_line);
     env.add_function("read-file", io::fn_read_file);
+    env.add_function("ls", io::fn_ls);
+    env.add_function("directory?", io::fn_is_directory);
 
     // List Manipulation
     env.add_function("car", list::fn_car);
