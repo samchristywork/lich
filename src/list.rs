@@ -1,10 +1,9 @@
-use crate::environment::Environment;
 use crate::node::Node;
 
 //- (test "car" (car (quote (1 2 3))) 1)
 //- (test "car" (car (quote ())) ())
 //- (test "car" (car (quote (1))) 1)
-pub fn fn_car(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
+pub fn fn_car(arguments: &[Node]) -> Result<Node, String> {
     if arguments.len() == 1 {
         if let Node::List(list) = &arguments[0] {
             if list.is_empty() {
@@ -19,7 +18,7 @@ pub fn fn_car(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
 //- (test "cdr" (cdr (quote (1 2 3))) (quote (2 3)))
 //- (test "cdr" (cdr (quote ())) ())
 //- (test "cdr" (cdr (quote (1))) ())
-pub fn fn_cdr(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
+pub fn fn_cdr(arguments: &[Node]) -> Result<Node, String> {
     if arguments.len() == 1 {
         if let Node::List(list) = &arguments[0] {
             if list.len() > 1 {
@@ -35,7 +34,7 @@ pub fn fn_cdr(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
 //- (test "cons" (cons 1 (quote (2 3))) (quote (1 2 3)))
 //- (test "cons" (cons 1 (quote ())) (quote (1)))
 //- (test "cons" (cons (quote (1)) (quote (2))) (quote ((1) 2)))
-pub fn fn_cons(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
+pub fn fn_cons(arguments: &[Node]) -> Result<Node, String> {
     if arguments.len() == 2 {
         if let Node::List(list) = &arguments[1] {
             let mut new_list = vec![arguments[0].clone()];
@@ -49,7 +48,7 @@ pub fn fn_cons(arguments: &[Node], _: &mut Environment) -> Result<Node, String> 
 //- (test "length" (length (quote (1 2 3))) 3)
 //- (test "length" (length (quote ())) 0)
 //- (test "length" (length (quote (1))) 1)
-pub fn fn_length(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
+pub fn fn_length(arguments: &[Node]) -> Result<Node, String> {
     if arguments.len() == 1 {
         if let Node::List(list) = &arguments[0] {
             let n = i64::try_from(list.len());
@@ -73,7 +72,7 @@ pub fn fn_length(arguments: &[Node], _: &mut Environment) -> Result<Node, String
 //- (test "null?" (null? (quote ())) true)
 //- (test "null?" (null? (quote (1))) false)
 //- (test "null?" (null? (quote "foo")) false)
-pub fn fn_is_null(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
+pub fn fn_is_null(arguments: &[Node]) -> Result<Node, String> {
     if arguments.len() == 1 {
         if let Node::List(list) = &arguments[0] {
             return Ok(Node::Bool(list.is_empty()));
@@ -87,14 +86,14 @@ pub fn fn_is_null(arguments: &[Node], _: &mut Environment) -> Result<Node, Strin
 //- (test "list" (list 1 2 3) (quote (1 2 3)))
 //- (test "list" (list) (quote ()))
 //- (test "list" (list 1) (quote (1)))
-pub fn fn_list(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
+pub fn fn_list(arguments: &[Node]) -> Result<Node, String> {
     Ok(Node::List(arguments.to_vec()))
 }
 
 //- (test "last" (last (quote (1 2 3))) 3)
 //- (test "last" (last (quote ())) ())
 //- (test "last" (last (quote (1))) 1)
-pub fn fn_last(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
+pub fn fn_last(arguments: &[Node]) -> Result<Node, String> {
     if arguments.len() == 1 {
         if let Node::List(list) = &arguments[0] {
             if list.is_empty() {
@@ -114,7 +113,7 @@ pub fn fn_last(arguments: &[Node], _: &mut Environment) -> Result<Node, String> 
 //- (test "nth" (nth 1 (quote (1 2 3))) 2)
 //- (test "nth" (nth 0 (quote ())) ())
 //- (test "nth" (nth 0 (quote (1))) 1)
-pub fn fn_nth(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
+pub fn fn_nth(arguments: &[Node]) -> Result<Node, String> {
     if arguments.len() == 2 {
         if let Node::List(list) = &arguments[1] {
             if let Node::Number(index) = &arguments[0] {

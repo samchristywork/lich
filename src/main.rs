@@ -217,7 +217,6 @@ fn create_environment(env: &mut Environment) {
     env.add_function("number->float", conversion::fn_number_to_float);
 
     // I/O
-    env.add_function("print-env", io::fn_print_env);
     env.add_function("write", io::fn_write);
     env.add_function("write-line", io::fn_write_line);
     env.add_function("read-line", io::fn_read_line);
@@ -247,12 +246,8 @@ fn create_environment(env: &mut Environment) {
     env.add_function("regex-split", regex::fn_regex_split);
 
     // Sequence Manipulation
-    env.add_function("fold", sequence::fn_fold);
     env.add_function("zip", sequence::fn_zip);
     env.add_function("range", sequence::fn_range);
-    env.add_function("for-each", sequence::fn_for_each);
-    env.add_function("map", sequence::fn_map);
-    env.add_function("filter", sequence::fn_filter);
 
     // String Manipulation
     env.add_function("concat", string::fn_concat);
@@ -288,8 +283,6 @@ fn create_environment(env: &mut Environment) {
 
     // Tree Manipulation
     env.add_function("leaves", tree::fn_leaves);
-    env.add_function("map-tree", tree::fn_map_tree);
-    env.add_function("filter-tree", tree::fn_filter_tree);
     env.add_function("depth", tree::fn_depth);
     env.add_function("format-tree", tree::fn_format_tree);
 }

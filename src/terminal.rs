@@ -1,15 +1,14 @@
-use crate::environment::Environment;
 use crate::node::Node;
 use std::io::Write;
 
-pub fn fn_clear(_: &[Node], _: &mut Environment) -> Result<Node, String> {
+pub fn fn_clear(_: &[Node]) -> Result<Node, String> {
     print!(r"[2J[1;1H");
     std::io::stdout().flush().unwrap();
 
     Ok(Node::Bool(true))
 }
 
-pub fn fn_alternate_screen(_: &[Node], _: &mut Environment) -> Result<Node, String> {
+pub fn fn_alternate_screen(_: &[Node]) -> Result<Node, String> {
     print!(r"[?1049h");
     std::io::stdout().flush().unwrap();
 
@@ -20,14 +19,14 @@ pub fn fn_alternate_screen(_: &[Node], _: &mut Environment) -> Result<Node, Stri
     Ok(Node::Bool(true))
 }
 
-pub fn fn_normal_screen(_: &[Node], _: &mut Environment) -> Result<Node, String> {
+pub fn fn_normal_screen(_: &[Node]) -> Result<Node, String> {
     print!(r"[?1049l");
     std::io::stdout().flush().unwrap();
 
     Ok(Node::Bool(true))
 }
 
-pub fn fn_fg(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
+pub fn fn_fg(arguments: &[Node]) -> Result<Node, String> {
     if arguments.len() == 1 {
         if let Node::Text(color) = &arguments[0] {
             print!(
@@ -54,7 +53,7 @@ pub fn fn_fg(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
     Ok(Node::Bool(true))
 }
 
-pub fn fn_bg(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
+pub fn fn_bg(arguments: &[Node]) -> Result<Node, String> {
     if arguments.len() == 1 {
         if let Node::Text(color) = &arguments[0] {
             print!(
@@ -81,7 +80,7 @@ pub fn fn_bg(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
     Ok(Node::Bool(true))
 }
 
-pub fn fn_set_cursor_pos(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
+pub fn fn_set_cursor_pos(arguments: &[Node]) -> Result<Node, String> {
     if arguments.len() == 2 {
         if let (Node::Number(x), Node::Number(y)) = (&arguments[0], &arguments[1]) {
             print!("[{};{}H", y, x);

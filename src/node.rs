@@ -1,4 +1,3 @@
-use crate::environment::Environment;
 use chrono::TimeZone;
 
 #[derive(Clone, Debug, PartialEq)]
@@ -10,7 +9,7 @@ pub enum Node {
     Bool(bool),
     List(Vec<Node>),
     Time(i64, i32), // Seconds since epoch and timezone offset in seconds
-    Function(fn(&[Node], &mut Environment) -> Result<Node, String>),
+    Function(fn(&[Node]) -> Result<Node, String>),
     Regex(String), // TODO: It would be more efficient to store a compiled regex
 }
 

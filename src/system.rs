@@ -1,7 +1,6 @@
-use crate::environment::Environment;
 use crate::node::Node;
 
-pub fn fn_system(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
+pub fn fn_system(arguments: &[Node]) -> Result<Node, String> {
     if arguments.len() == 1 {
         let Node::Text(command) = &arguments[0] else {
             return Err("Invalid argument for system".to_string());
@@ -20,13 +19,13 @@ pub fn fn_system(arguments: &[Node], _: &mut Environment) -> Result<Node, String
     Err("Invalid arguments for system".to_string())
 }
 
-pub fn fn_version(_: &[Node], _: &mut Environment) -> Result<Node, String> {
+pub fn fn_version(_: &[Node]) -> Result<Node, String> {
     Ok(Node::Text(format!(
         "Lich version {}",
         env!("CARGO_PKG_VERSION")
     )))
 }
 
-pub fn fn_exit(_: &[Node], _: &mut Environment) -> Result<Node, String> {
+pub fn fn_exit(_: &[Node]) -> Result<Node, String> {
     std::process::exit(0);
 }

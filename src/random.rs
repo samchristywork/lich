@@ -1,9 +1,8 @@
-use crate::environment::Environment;
 use crate::invalid_arguments;
 use crate::node::Node;
 use rand::Rng;
 
-pub fn fn_random_number(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
+pub fn fn_random_number(arguments: &[Node]) -> Result<Node, String> {
     match arguments {
         [] => Ok(Node::Number(rand::random::<i64>())),
         [Node::Number(max)] => {

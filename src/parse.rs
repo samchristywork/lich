@@ -1,4 +1,3 @@
-use crate::Environment;
 use crate::Node;
 
 enum Token {
@@ -168,7 +167,7 @@ fn tokenize(source: &str) -> Result<Vec<Token>, String> {
     Ok(tokens)
 }
 
-pub fn fn_tokenize(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
+pub fn fn_tokenize(arguments: &[Node]) -> Result<Node, String> {
     if arguments.len() == 1 {
         if let Node::Text(text) = &arguments[0] {
             let tokens = tokenize(text)?;
@@ -185,7 +184,7 @@ pub fn fn_tokenize(arguments: &[Node], _: &mut Environment) -> Result<Node, Stri
     ))
 }
 
-pub fn fn_parse(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
+pub fn fn_parse(arguments: &[Node]) -> Result<Node, String> {
     if arguments.len() == 1 {
         if let Node::Text(text) = &arguments[0] {
             let parsed = parse(text)?;

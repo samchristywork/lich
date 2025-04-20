@@ -141,6 +141,11 @@ fn eval_get_type(rest: &[Node], env: &mut Environment) -> Result<Node, String> {
     }
 }
 
+pub fn eval_print_env(_: &[Node], env: &mut Environment) -> Result<Node, String> {
+    println!("{env}");
+    Ok(Node::Bool(true))
+}
+
 fn eval_lambda(rest: &[Node]) -> Result<Node, String> {
     if rest.len() != 2 {
         return Err("Invalid arguments for lambda".to_string());
@@ -267,6 +272,7 @@ fn eval_list(nodes: &[Node], env: &mut Environment) -> Result<Node, String> {
                 "undefine" => eval_undefine(rest, env)?,
                 "defined?" => eval_is_defined(rest, env)?,
                 "type?" => eval_get_type(rest, env)?,
+                "print-env" => eval_print_env(rest, env)?,
                 "lambda" => eval_lambda(rest)?,
                 "let" => eval_let(rest, env)?,
                 "let-restricted" => eval_let_restricted(rest, env)?,
@@ -293,7 +299,7 @@ fn eval_list(nodes: &[Node], env: &mut Environment) -> Result<Node, String> {
 
 pub fn apply(function: &Node, arguments: &[Node], env: &mut Environment) -> Result<Node, String> {
     Ok(match function {
-        Node::Function(f) => f(arguments, env)?,
+        Node::Function(f) => f(arguments)?,
         Node::List(nodes) => {
             if let Node::Symbol(s) = &nodes[0] {
                 if s == "lambda" {

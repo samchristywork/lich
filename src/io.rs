@@ -1,12 +1,6 @@
-use crate::environment::Environment;
 use crate::node::Node;
 
-pub fn fn_print_env(_: &[Node], env: &mut Environment) -> Result<Node, String> {
-    println!("{env}");
-    Ok(Node::Bool(true))
-}
-
-pub fn fn_write(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
+pub fn fn_write(arguments: &[Node]) -> Result<Node, String> {
     for arg in arguments {
         print!("{arg}");
     }
@@ -14,7 +8,7 @@ pub fn fn_write(arguments: &[Node], _: &mut Environment) -> Result<Node, String>
     Ok(Node::Bool(true))
 }
 
-pub fn fn_write_line(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
+pub fn fn_write_line(arguments: &[Node]) -> Result<Node, String> {
     for arg in arguments {
         print!("{arg}");
     }
@@ -23,7 +17,7 @@ pub fn fn_write_line(arguments: &[Node], _: &mut Environment) -> Result<Node, St
     Ok(Node::Bool(true))
 }
 
-pub fn fn_read_line(_: &[Node], _: &mut Environment) -> Result<Node, String> {
+pub fn fn_read_line(_: &[Node]) -> Result<Node, String> {
     let mut input = String::new();
     std::io::stdin()
         .read_line(&mut input)
@@ -31,7 +25,7 @@ pub fn fn_read_line(_: &[Node], _: &mut Environment) -> Result<Node, String> {
     Ok(Node::Text(input.trim().to_string()))
 }
 
-pub fn fn_read_file(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
+pub fn fn_read_file(arguments: &[Node]) -> Result<Node, String> {
     if arguments.len() == 1 {
         let Node::Text(filename) = &arguments[0] else {
             return Err("Invalid argument for read_file".to_string());

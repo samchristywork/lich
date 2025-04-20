@@ -74,11 +74,7 @@ impl Environment {
         }
     }
 
-    pub fn add_function(
-        &mut self,
-        name: &str,
-        function: fn(&[Node], &mut Self) -> Result<Node, String>,
-    ) {
+    pub fn add_function(&mut self, name: &str, function: fn(&[Node]) -> Result<Node, String>) {
         self.variables
             .insert(name.to_string(), Node::Function(function));
     }

@@ -1,7 +1,6 @@
-use crate::environment::Environment;
 use crate::node::Node;
 
-pub fn fn_regex(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
+pub fn fn_regex(arguments: &[Node]) -> Result<Node, String> {
     if arguments.len() == 1 {
         if let Node::Text(s) = &arguments[0] {
             return Ok(Node::Regex(s.clone()));
@@ -14,7 +13,7 @@ pub fn fn_regex(arguments: &[Node], _: &mut Environment) -> Result<Node, String>
 //- (test "regex-match" (regex-match (regex "^foo$") "bar") false)
 //- (test "regex-match" (regex-match (regex "foo") "foo bar") true)
 //- (test "regex-match" (regex-match (regex "foob") "foo bar") false)
-pub fn fn_regex_match(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
+pub fn fn_regex_match(arguments: &[Node]) -> Result<Node, String> {
     if arguments.len() == 2 {
         if let Node::Regex(r) = &arguments[0] {
             if let Node::Text(s) = &arguments[1] {
@@ -29,7 +28,7 @@ pub fn fn_regex_match(arguments: &[Node], _: &mut Environment) -> Result<Node, S
 //- (test "regex-replace" (regex-replace (regex "^foo$") "foo" "bar") "bar")
 //- (test "regex-replace" (regex-replace (regex "^foo$") "bar" "foo") "bar")
 //- (test "regex-replace" (regex-replace (regex "foo") "foo bar" "bar") "bar bar")
-pub fn fn_regex_replace(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
+pub fn fn_regex_replace(arguments: &[Node]) -> Result<Node, String> {
     if arguments.len() == 3 {
         if let Node::Regex(r) = &arguments[0] {
             if let Node::Text(s) = &arguments[1] {
@@ -46,7 +45,7 @@ pub fn fn_regex_replace(arguments: &[Node], _: &mut Environment) -> Result<Node,
 //- (test "regex-split" (regex-split (regex "a") "bar") (quote ("b" "r")))
 //- (test "regex-split" (regex-split (regex "a") "foo bar") (quote ("foo b" "r")))
 //- (test "regex-split" (regex-split (regex "a") "foo bar baz") (quote ("foo b" "r b" "z")))
-pub fn fn_regex_split(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
+pub fn fn_regex_split(arguments: &[Node]) -> Result<Node, String> {
     if arguments.len() == 2 {
         if let Node::Regex(r) = &arguments[0] {
             if let Node::Text(s) = &arguments[1] {

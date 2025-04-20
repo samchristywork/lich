@@ -1,11 +1,10 @@
-use crate::environment::Environment;
 use crate::invalid_arguments;
 use crate::node::Node;
 
 //- (test "=" (= 1 2) false)
 //- (test "=" (= "foo" "bar") false)
 //- (test "=" (= 1 1) true)
-pub fn fn_eq(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
+pub fn fn_eq(arguments: &[Node]) -> Result<Node, String> {
     match arguments {
         [Node::Number(a), Node::Number(b)] => Ok(Node::Bool(a == b)),
         [Node::Text(a), Node::Text(b)] => Ok(Node::Bool(a == b)),
@@ -32,7 +31,7 @@ pub fn fn_eq(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
 //- (test "<" (< 1 2) true)
 //- (test "<" (< 2 1) false)
 //- (test "<" (< 1 1) false)
-pub fn fn_less_than(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
+pub fn fn_less_than(arguments: &[Node]) -> Result<Node, String> {
     match arguments {
         [Node::Number(a), Node::Number(b)] => Ok(Node::Bool(a < b)),
         _ => invalid_arguments!("<", arguments, ["[Number(a), Number(b)]"]),
@@ -42,7 +41,7 @@ pub fn fn_less_than(arguments: &[Node], _: &mut Environment) -> Result<Node, Str
 //- (test ">" (> 1 2) false)
 //- (test ">" (> 2 1) true)
 //- (test ">" (> 1 1) false)
-pub fn fn_greater_than(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
+pub fn fn_greater_than(arguments: &[Node]) -> Result<Node, String> {
     match arguments {
         [Node::Number(a), Node::Number(b)] => Ok(Node::Bool(a > b)),
         _ => invalid_arguments!(">", arguments, ["[Number(a), Number(b)]"]),
@@ -52,7 +51,7 @@ pub fn fn_greater_than(arguments: &[Node], _: &mut Environment) -> Result<Node, 
 //- (test "<=" (<= 1 2) true)
 //- (test "<=" (<= 2 1) false)
 //- (test "<=" (<= 1 1) true)
-pub fn fn_less_than_or_equal(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
+pub fn fn_less_than_or_equal(arguments: &[Node]) -> Result<Node, String> {
     match arguments {
         [Node::Number(a), Node::Number(b)] => Ok(Node::Bool(a <= b)),
         _ => invalid_arguments!("<=", arguments, ["[Number(a), Number(b)]"]),
@@ -62,7 +61,7 @@ pub fn fn_less_than_or_equal(arguments: &[Node], _: &mut Environment) -> Result<
 //- (test ">=" (>= 1 2) false)
 //- (test ">=" (>= 2 1) true)
 //- (test ">=" (>= 1 1) true)
-pub fn fn_greater_than_or_equal(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
+pub fn fn_greater_than_or_equal(arguments: &[Node]) -> Result<Node, String> {
     match arguments {
         [Node::Number(a), Node::Number(b)] => Ok(Node::Bool(a >= b)),
         _ => invalid_arguments!(">=", arguments, ["[Number(a), Number(b)]"]),
@@ -71,7 +70,7 @@ pub fn fn_greater_than_or_equal(arguments: &[Node], _: &mut Environment) -> Resu
 
 //- (test "not" (not true) false)
 //- (test "not" (not false) true)
-pub fn fn_not(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
+pub fn fn_not(arguments: &[Node]) -> Result<Node, String> {
     match arguments {
         [Node::Bool(a)] => Ok(Node::Bool(!a)),
         _ => invalid_arguments!("not", arguments, ["[Bool(a)]"]),
@@ -81,7 +80,7 @@ pub fn fn_not(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
 //- (test "and" (and true true) true)
 //- (test "and" (and true false) false)
 //- (test "and" (and false true) false)
-pub fn fn_and(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
+pub fn fn_and(arguments: &[Node]) -> Result<Node, String> {
     match arguments {
         [Node::Bool(a), Node::Bool(b)] => Ok(Node::Bool(*a && *b)),
         _ => invalid_arguments!("and", arguments, ["[Bool(a), Bool(b)]"]),
@@ -91,7 +90,7 @@ pub fn fn_and(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
 //- (test "or" (or true true) true)
 //- (test "or" (or true false) true)
 //- (test "or" (or false false) false)
-pub fn fn_or(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
+pub fn fn_or(arguments: &[Node]) -> Result<Node, String> {
     match arguments {
         [Node::Bool(a), Node::Bool(b)] => Ok(Node::Bool(*a || *b)),
         _ => invalid_arguments!("or", arguments, ["[Bool(a), Bool(b)]"]),

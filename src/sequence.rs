@@ -1,32 +1,11 @@
-use crate::environment::Environment;
-use crate::eval::apply;
 use crate::invalid_arguments;
 use crate::node::Node;
 
-//- (test "fold" (fold + 0 (quote (1 2 3))) 6)
-//- (test "fold" (fold + 0 (quote ())) 0)
-//- (test "fold" (fold + 0 (quote (1))) 1)
-pub fn fn_fold(arguments: &[Node], env: &mut Environment) -> Result<Node, String> {
-    match arguments {
-        [function, initial_value, Node::List(list)] => {
-            let mut result = initial_value.clone();
-            for item in list {
-                result = apply(function, &[result, item.clone()], env)?;
-            }
-            Ok(result)
-        }
-        _ => invalid_arguments!(
-            "fold",
-            arguments,
-            ["[Any(function), Any(initial_value), List(list)]"]
-        ),
-    }
-}
 
 //- (test "zip" (zip (quote (1 2 3)) (quote (4 5 6))) (quote ((1 4) (2 5) (3 6))))
 //- (test "zip" (zip (quote ()) (quote ())) (quote ()))
 //- (test "zip" (zip (quote (1)) (quote (2))) (quote ((1 2))))
-pub fn fn_zip(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
+pub fn fn_zip(arguments: &[Node]) -> Result<Node, String> {
     match arguments {
         [Node::List(list1), Node::List(list2)] => {
             let mut zipped = Vec::new();
@@ -43,7 +22,7 @@ pub fn fn_zip(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
 //- (test "range" (range 1 5) (quote (1 2 3 4)))
 //- (test "range" (range 5) (quote (0 1 2 3 4)))
 //- (test "range" (range 0 0) (quote ()))
-pub fn fn_range(arguments: &[Node], _: &mut Environment) -> Result<Node, String> {
+pub fn fn_range(arguments: &[Node]) -> Result<Node, String> {
     match arguments {
         [Node::Number(end)] => {
             let mut range = Vec::new();
@@ -83,49 +62,5 @@ pub fn fn_range(arguments: &[Node], _: &mut Environment) -> Result<Node, String>
     }
 }
 
-pub fn fn_for_each(arguments: &[Node], env: &mut Environment) -> Result<Node, String> {
-    match arguments {
-        [function, Node::List(list)] => {
-            for item in list {
-                apply(function, &[item.clone()], env)?;
-            }
-            Ok(Node::Bool(true))
-        }
-        _ => invalid_arguments!("for-each", arguments, ["[Any(function), List(list)]"]),
-    }
-}
 
-//- (define inc (lambda (x) (+ x 1)))
-//- (test "map" (map inc (quote (1 2 3))) (quote (2 3 4)))
-//- (test "map" (map inc (quote ())) (quote ()))
-//- (test "map" (map inc (quote (1))) (quote (2)))
-pub fn fn_map(arguments: &[Node], env: &mut Environment) -> Result<Node, String> {
-    match arguments {
-        [function, Node::List(list)] => {
-            let mut mapped = Vec::new();
-            for item in list {
-                mapped.push(apply(function, &[item.clone()], env)?);
-            }
-            Ok(Node::List(mapped))
-        }
-        _ => invalid_arguments!("map", arguments, ["[Any(function), List(list)]"]),
-    }
-}
 
-//- (test "filter" (filter even? (quote (1 2 3 4))) (quote (2 4)))
-//- (test "filter" (filter even? (quote ())) (quote ()))
-//- (test "filter" (filter even? (quote (1))) (quote ()))
-pub fn fn_filter(arguments: &[Node], env: &mut Environment) -> Result<Node, String> {
-    match arguments {
-        [function, Node::List(list)] => {
-            let mut filtered = Vec::new();
-            for item in list {
-                if let Node::Bool(true) = apply(function, &[item.clone()], env)? {
-                    filtered.push(item.clone());
-                }
-            }
-            Ok(Node::List(filtered))
-        }
-        _ => invalid_arguments!("filter", arguments, ["[Any(function), List(list)]"]),
-    }
-}
