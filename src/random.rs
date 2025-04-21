@@ -9,7 +9,7 @@ pub fn fn_random_number(arguments: &[Node]) -> Result<Node, String> {
             if *max < 0 {
                 return Err("Maximum value cannot be negative".to_string());
             }
-            let max = *max as i64;
+            let max = { *max };
             let random_number = rand::rng().random_range(0..=max);
             Ok(Node::Number(random_number))
         }
@@ -17,8 +17,8 @@ pub fn fn_random_number(arguments: &[Node]) -> Result<Node, String> {
             if min > max {
                 return Err("Minimum value cannot be greater than maximum value".to_string());
             }
-            let min = *min as i64;
-            let max = *max as i64;
+            let min = { *min };
+            let max = { *max };
             let random_number = rand::rng().random_range(min..=max);
             Ok(Node::Number(random_number))
         }
@@ -43,8 +43,12 @@ pub fn fn_random_number(arguments: &[Node]) -> Result<Node, String> {
             "random-number",
             arguments,
             [
-            "[]", "[Number(max)]", "[Number(min), Number(max)]",
-            "[]", "[Float(max)]", "[Float(min), Float(max)]"
+                "[]",
+                "[Number(max)]",
+                "[Number(min), Number(max)]",
+                "[]",
+                "[Float(max)]",
+                "[Float(min), Float(max)]"
             ]
         ),
     }

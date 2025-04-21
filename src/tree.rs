@@ -61,7 +61,7 @@ fn format_tree_helper(node: &Node, depth: usize) -> String {
             }
         }
         _ => {
-            result.push_str(&format!("{}{:?}\n", indent, node));
+            result.push_str(&format!("{indent}{node:?}\n"));
         }
     }
     result

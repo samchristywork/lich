@@ -75,8 +75,8 @@ pub fn fn_now(arguments: &[Node]) -> Result<Node, String> {
         [] => {
             let now = chrono::Local::now();
             let offset = now.offset().local_minus_utc();
-            let seconds = now.timestamp() + offset as i64;
-            return Ok(Node::Time(seconds, offset));
+            let seconds = now.timestamp() + i64::from(offset);
+            Ok(Node::Time(seconds, offset))
         }
         _ => invalid_arguments!("now", arguments, ["[]"]),
     }
@@ -88,7 +88,7 @@ pub fn fn_add_days(arguments: &[Node]) -> Result<Node, String> {
     match arguments {
         [Node::Number(days), Node::Time(seconds, offset)] => {
             let new_seconds = *seconds + days * 86400;
-            return Ok(Node::Time(new_seconds, *offset));
+            Ok(Node::Time(new_seconds, *offset))
         }
         _ => invalid_arguments!(
             "add-days",
@@ -104,7 +104,7 @@ pub fn fn_add_hours(arguments: &[Node]) -> Result<Node, String> {
     match arguments {
         [Node::Number(hours), Node::Time(seconds, offset)] => {
             let new_seconds = *seconds + hours * 3600;
-            return Ok(Node::Time(new_seconds, *offset));
+            Ok(Node::Time(new_seconds, *offset))
         }
         _ => invalid_arguments!(
             "add-hours",
@@ -120,7 +120,7 @@ pub fn fn_add_minutes(arguments: &[Node]) -> Result<Node, String> {
     match arguments {
         [Node::Number(minutes), Node::Time(seconds, offset)] => {
             let new_seconds = *seconds + minutes * 60;
-            return Ok(Node::Time(new_seconds, *offset));
+            Ok(Node::Time(new_seconds, *offset))
         }
         _ => invalid_arguments!(
             "add-minutes",
@@ -136,7 +136,7 @@ pub fn fn_add_seconds(arguments: &[Node]) -> Result<Node, String> {
     match arguments {
         [Node::Number(seconds), Node::Time(current_seconds, offset)] => {
             let new_seconds = *current_seconds + seconds;
-            return Ok(Node::Time(new_seconds, *offset));
+            Ok(Node::Time(new_seconds, *offset))
         }
         _ => invalid_arguments!(
             "add-seconds",

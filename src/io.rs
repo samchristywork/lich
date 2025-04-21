@@ -5,9 +5,8 @@ pub fn fn_format(arguments: &[Node]) -> Result<Node, String> {
     Ok(Node::Text(
         arguments
             .iter()
-            .map(|arg| arg.to_string())
-            .collect::<Vec<String>>()
-            .join(""),
+            .map(std::string::ToString::to_string)
+            .collect::<String>(),
     ))
 }
 
@@ -67,7 +66,7 @@ pub fn fn_ls(arguments: &[Node]) -> Result<Node, String> {
         [Node::Text(path)] => {
             let entries = std::fs::read_dir(path)
                 .map_err(|_| format!("Failed to read directory: {path}"))?
-                .filter_map(|entry| entry.ok())
+                .filter_map(std::result::Result::ok)
                 .map(|entry| Node::Text(entry.file_name().to_string_lossy().to_string()))
                 .collect::<Vec<Node>>();
             Ok(Node::List(entries))

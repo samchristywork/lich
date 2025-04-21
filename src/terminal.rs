@@ -44,7 +44,7 @@ pub fn fn_fg(arguments: &[Node]) -> Result<Node, String> {
                 }
             );
         }
-    } else if arguments.len() == 0 {
+    } else if arguments.is_empty() {
         print!("[0m");
     } else {
         return Err("Invalid arguments for fg".to_string());
@@ -71,7 +71,7 @@ pub fn fn_bg(arguments: &[Node]) -> Result<Node, String> {
                 }
             );
         }
-    } else if arguments.len() == 0 {
+    } else if arguments.is_empty() {
         print!("[0m");
     } else {
         return Err("Invalid arguments for bg".to_string());
@@ -83,7 +83,7 @@ pub fn fn_bg(arguments: &[Node]) -> Result<Node, String> {
 pub fn fn_set_cursor_pos(arguments: &[Node]) -> Result<Node, String> {
     if arguments.len() == 2 {
         if let (Node::Number(x), Node::Number(y)) = (&arguments[0], &arguments[1]) {
-            print!("[{};{}H", y, x);
+            print!("[{y};{x}H");
         } else {
             return Err("Invalid arguments for set_cursor_pos".to_string());
         }

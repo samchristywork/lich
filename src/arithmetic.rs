@@ -114,7 +114,10 @@ pub fn fn_abs(arguments: &[Node]) -> Result<Node, String> {
 //- (test "pow" (pow 0 2) 0)
 pub fn fn_pow(arguments: &[Node]) -> Result<Node, String> {
     match arguments {
-        [Node::Number(base), Node::Number(exp)] => Ok(Node::Number(base.pow(*exp as u32))),
+        [Node::Number(base), Node::Number(exp)] => match (*exp).try_into() {
+            Ok(exp) => Ok(Node::Number(base.pow(exp))),
+            Err(_) => Err("Could not convert i64 to u32".to_string()),
+        },
         [Node::Float(base), Node::Float(exp)] => Ok(Node::Float(base.powf(*exp))),
         _ => invalid_arguments!(
             "pow",

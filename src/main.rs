@@ -172,12 +172,7 @@ fn process_files(positional_args: &Vec<&String>, env: &mut Environment, verbose:
 fn create_environment(env: &mut Environment) {
     env.insert(
         "args",
-        Node::List(
-            std::env::args()
-                .skip(1)
-                .map(|arg| Node::Text(arg))
-                .collect(),
-        ),
+        Node::List(std::env::args().skip(1).map(Node::Text).collect()),
     );
 
     // Arithmetic

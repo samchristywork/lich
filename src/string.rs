@@ -33,11 +33,7 @@ pub fn fn_concat(arguments: &[Node]) -> Result<Node, String> {
             Ok(Node::Text(result))
         }
         _ => {
-            invalid_arguments!(
-                "concat",
-                arguments,
-                ["[Text(s1), ...]", "[List(l1), ...]"]
-            )
+            invalid_arguments!("concat", arguments, ["[Text(s1), ...]", "[List(l1), ...]"])
         }
     }
 }

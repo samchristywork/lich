@@ -7,10 +7,11 @@ use crate::node::Node;
 pub fn fn_eq(arguments: &[Node]) -> Result<Node, String> {
     match arguments {
         [Node::Number(a), Node::Number(b)] => Ok(Node::Bool(a == b)),
-        [Node::Text(a), Node::Text(b)] => Ok(Node::Bool(a == b)),
         [Node::List(a), Node::List(b)] => Ok(Node::Bool(a == b)),
         [Node::Bool(a), Node::Bool(b)] => Ok(Node::Bool(a == b)),
-        [Node::Symbol(a), Node::Symbol(b)] => Ok(Node::Bool(a == b)),
+        [Node::Text(a), Node::Text(b)] | [Node::Symbol(a), Node::Symbol(b)] => {
+            Ok(Node::Bool(a == b))
+        }
         [Node::Float(a), Node::Float(b)] => Ok(Node::Bool(a == b)),
         [Node::Time(t1, z1), Node::Time(t2, z2)] => Ok(Node::Bool(t1 == t2 && z1 == z2)),
         _ => invalid_arguments!(

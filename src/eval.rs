@@ -1,6 +1,6 @@
 use crate::environment::Environment;
-use crate::node::Node;
 use crate::invalid_arguments;
+use crate::node::Node;
 
 pub fn eval(node: &Node, env: &mut Environment) -> Result<Node, String> {
     match node {
@@ -169,7 +169,10 @@ fn eval_lambda(rest: &[Node]) -> Result<Node, String> {
 //- (test "map" (map inc (quote ())) (quote ()))
 //- (test "map" (map inc (quote (1))) (quote (2)))
 fn eval_map(rest: &[Node], env: &mut Environment) -> Result<Node, String> {
-    let rest = rest.into_iter().map(|n| eval(n, env)).collect::<Result<Vec<_>, _>>()?;
+    let rest = rest
+        .iter()
+        .map(|n| eval(n, env))
+        .collect::<Result<Vec<_>, _>>()?;
     match &rest[..] {
         [function, Node::List(list)] => {
             let mut mapped = Vec::new();
@@ -187,10 +190,14 @@ fn eval_map(rest: &[Node], env: &mut Environment) -> Result<Node, String> {
             }
             Ok(Node::List(mapped))
         }
-        _ => invalid_arguments!("map", rest, [
-            "[Any(function), List(list)]",
-            "[Any(function), List(list), List(args)]"
-        ]),
+        _ => invalid_arguments!(
+            "map",
+            rest,
+            [
+                "[Any(function), List(list)]",
+                "[Any(function), List(list), List(args)]"
+            ]
+        ),
     }
 }
 
@@ -198,12 +205,15 @@ fn eval_map(rest: &[Node], env: &mut Environment) -> Result<Node, String> {
 //- (test "filter" (filter even? (quote ())) (quote ()))
 //- (test "filter" (filter even? (quote (1))) (quote ()))
 fn eval_filter(rest: &[Node], env: &mut Environment) -> Result<Node, String> {
-    let rest = rest.into_iter().map(|n| eval(n, env)).collect::<Result<Vec<_>, _>>()?;
+    let rest = rest
+        .iter()
+        .map(|n| eval(n, env))
+        .collect::<Result<Vec<_>, _>>()?;
     match &rest[..] {
         [function, Node::List(list)] => {
             let mut filtered = Vec::new();
             for item in list {
-                if let Node::Bool(true) = apply(function, &[item.clone()], env)? {
+                if apply(function, &[item.clone()], env)? == Node::Bool(true) {
                     filtered.push(item.clone());
                 }
             }
@@ -217,7 +227,10 @@ fn eval_filter(rest: &[Node], env: &mut Environment) -> Result<Node, String> {
 //- (test "fold" (fold + 0 (quote ())) 0)
 //- (test "fold" (fold + 0 (quote (1))) 1)
 fn eval_fold(rest: &[Node], env: &mut Environment) -> Result<Node, String> {
-    let rest = rest.into_iter().map(|n| eval(n, env)).collect::<Result<Vec<_>, _>>()?;
+    let rest = rest
+        .iter()
+        .map(|n| eval(n, env))
+        .collect::<Result<Vec<_>, _>>()?;
     match &rest[..] {
         [function, initial_value, Node::List(list)] => {
             let mut result = initial_value.clone();
@@ -235,34 +248,38 @@ fn eval_fold(rest: &[Node], env: &mut Environment) -> Result<Node, String> {
 }
 
 fn eval_eval(rest: &[Node], env: &mut Environment) -> Result<Node, String> {
-    let rest = rest.into_iter().map(|n| eval(n, env)).collect::<Result<Vec<_>, _>>()?;
+    let rest = rest
+        .iter()
+        .map(|n| eval(n, env))
+        .collect::<Result<Vec<_>, _>>()?;
     match &rest[..] {
         [Node::List(nodes)] => {
             for node in nodes {
                 eval(node, env)?;
             }
-            Ok(Node::List(nodes.to_vec()))
+            Ok(Node::List(nodes.clone()))
         }
         _ => invalid_arguments!("eval", rest, ["[List(nodes)]"]),
     }
 }
 
 fn eval_pipe(rest: &[Node], env: &mut Environment) -> Result<Node, String> {
-    let mut first = eval(&rest[0], env)?;
-    Ok(rest.into_iter().skip(1).fold(first, |current, next| {
+    let first = eval(&rest[0], env);
+    rest.iter().skip(1).fold(first, |current, next| {
         if let Node::List(nodes) = next {
-            let function = eval(&nodes[0], env).unwrap();
+            let function = eval(&nodes[0], env)?;
             let mut arguments = vec![];
             for node in nodes.iter().skip(1) {
-                arguments.push(eval(node, env).unwrap());
+                arguments.push(eval(node, env)?);
             }
-            arguments.push(current.clone());
+            arguments.push(current?);
 
-            apply(&function, &arguments, env).unwrap()
+            Ok(apply(&function, &arguments, env)?)
         } else {
-            panic!("Invalid pipe: {next:?}");
+            //panic!("Invalid pipe: {next:?}");
+            invalid_arguments!("pipe", rest, ["[TODO]"])
         }
-    }))
+    })
 }
 
 fn eval_let(rest: &[Node], env: &mut Environment) -> Result<Node, String> {
