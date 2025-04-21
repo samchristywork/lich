@@ -1,0 +1,42 @@
+#!/usr/bin/env -S lich
+
+(define filenames
+  (filter
+    (lambda (x) (ends-with? ".rs" x))
+    (split "\n" (system "git ls-files"))))
+
+(define extract-tests
+  (lambda (filename)
+    (map
+      (lambda (line) (replace "//- " "" line))
+      (filter
+        (lambda (line) (starts-with? "//-" line))
+          (split "\n" (read-file filename))))))
+
+(define basename
+  (lambda (filename)
+    (pipe
+      filename
+      (split "/")
+      (last)
+      (split ".")
+      (car))))
+
+(define module "test")
+(define test (lambda (f a b)
+  (if
+    (= a b)
+    (write-line "[32mPass[0m: " module ":" f)
+    (begin
+      (write-line "[31mFail[0m: " module ":" f)
+      (write-line "  Expected: " b)
+      (write-line "  Actual: " a)
+      (exit)))))
+
+(eval
+  (parse
+    (join "\n"
+      (map (lambda (filename)
+        (concat "(define module `" (basename filename) "`)\n"
+          (join "\n" (extract-tests filename))))
+        filenames))))
