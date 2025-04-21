@@ -4,19 +4,39 @@ use crate::node::Node;
 //- (test "concat" (concat (quote (1 2)) (quote (3 4))) (quote (1 2 3 4)))
 //- (test "concat" (concat "Foo" "Bar") "FooBar")
 //- (test "concat" (concat (quote ()) (quote (1))) (quote (1)))
+//- (test "concat" (concat (quote (1 2)) (quote (4 1)) (quote (1))) (quote (1 2 4 1 1)))
+//- (test "concat" (concat "Foo" "Bar" "Baz") "FooBarBaz")
 pub fn fn_concat(arguments: &[Node]) -> Result<Node, String> {
     match arguments {
-        [Node::List(l1), Node::List(l2)] => {
-            let mut new_list = l1.clone();
-            new_list.extend_from_slice(l2);
-            Ok(Node::List(new_list))
+        [Node::List(_), ..] => {
+            let mut result = vec![];
+            for arg in arguments {
+                if let Node::List(l) = arg {
+                    result.extend_from_slice(l);
+                } else {
+                    panic!("Oh no...");
+                }
+            }
+
+            Ok(Node::List(result))
         }
-        [Node::Text(s1), Node::Text(s2)] => Ok(Node::Text(format!("{s1}{s2}"))),
+        [Node::Text(_), ..] => {
+            let mut result = String::new();
+            for arg in arguments {
+                if let Node::Text(s) = arg {
+                    result = result + s;
+                } else {
+                    panic!("Oh no...");
+                }
+            }
+
+            Ok(Node::Text(result))
+        }
         _ => {
             invalid_arguments!(
                 "concat",
                 arguments,
-                ["[Text(s1), Text(s2)]", "[List(l1), List(l2)]"]
+                ["[Text(s1), ...]", "[List(l1), ...]"]
             )
         }
     }
