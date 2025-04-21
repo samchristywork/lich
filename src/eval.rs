@@ -247,6 +247,24 @@ fn eval_eval(rest: &[Node], env: &mut Environment) -> Result<Node, String> {
     }
 }
 
+fn eval_pipe(rest: &[Node], env: &mut Environment) -> Result<Node, String> {
+    let mut first = eval(&rest[0], env)?;
+    Ok(rest.into_iter().skip(1).fold(first, |current, next| {
+        if let Node::List(nodes) = next {
+            let function = eval(&nodes[0], env).unwrap();
+            let mut arguments = vec![];
+            for node in nodes.iter().skip(1) {
+                arguments.push(eval(node, env).unwrap());
+            }
+            arguments.push(current.clone());
+
+            apply(&function, &arguments, env).unwrap()
+        } else {
+            panic!("Invalid pipe: {next:?}");
+        }
+    }))
+}
+
 fn eval_let(rest: &[Node], env: &mut Environment) -> Result<Node, String> {
     if rest.len() == 2 {
         let bindings = &rest[0];
@@ -364,6 +382,7 @@ fn eval_list(nodes: &[Node], env: &mut Environment) -> Result<Node, String> {
                 "filter" => eval_filter(rest, env)?,
                 "fold" => eval_fold(rest, env)?,
                 "eval" => eval_eval(rest, env)?,
+                "|" | "pipe" => eval_pipe(rest, env)?,
                 "let" => eval_let(rest, env)?,
                 "let-restricted" => eval_let_restricted(rest, env)?,
                 "time-ms" => eval_time_ms(rest, env)?,
