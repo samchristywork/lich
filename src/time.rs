@@ -6,9 +6,11 @@ use crate::node::Node;
 pub fn fn_time(arguments: &[Node]) -> Result<Node, String> {
     match arguments {
         [Node::Number(year), Node::Number(month), Node::Number(day)] => {
-            let Some(dt) =
-                chrono::NaiveDate::from_ymd_opt(*year as i32, *month as u32, *day as u32)
-            else {
+            let year = i32::try_from(*year).map_err(|_| "Invalid year")?;
+            let month = u32::try_from(*month).map_err(|_| "Invalid month")?;
+            let day = u32::try_from(*day).map_err(|_| "Invalid day")?;
+
+            let Some(dt) = chrono::NaiveDate::from_ymd_opt(year, month, day) else {
                 return Err("Invalid date".to_string());
             };
             let Some(dt_seconds) = dt.and_hms_opt(0, 0, 0) else {
@@ -24,13 +26,17 @@ pub fn fn_time(arguments: &[Node]) -> Result<Node, String> {
             Node::Number(minute),
             Node::Number(second),
         ] => {
-            let Some(dt) =
-                chrono::NaiveDate::from_ymd_opt(*year as i32, *month as u32, *day as u32)
-            else {
+            let year = i32::try_from(*year).map_err(|_| "Invalid year")?;
+            let month = u32::try_from(*month).map_err(|_| "Invalid month")?;
+            let day = u32::try_from(*day).map_err(|_| "Invalid day")?;
+            let hour = u32::try_from(*hour).map_err(|_| "Invalid hour")?;
+            let minute = u32::try_from(*minute).map_err(|_| "Invalid minute")?;
+            let second = u32::try_from(*second).map_err(|_| "Invalid second")?;
+
+            let Some(dt) = chrono::NaiveDate::from_ymd_opt(year, month, day) else {
                 return Err("Invalid date".to_string());
             };
-            let Some(dt_seconds) = dt.and_hms_opt(*hour as u32, *minute as u32, *second as u32)
-            else {
+            let Some(dt_seconds) = dt.and_hms_opt(hour, minute, second) else {
                 return Err("Invalid time".to_string());
             };
             Ok(Node::Time(dt_seconds.and_utc().timestamp(), 0))
@@ -44,19 +50,21 @@ pub fn fn_time(arguments: &[Node]) -> Result<Node, String> {
             Node::Number(second),
             Node::Number(offset),
         ] => {
-            let Some(dt) =
-                chrono::NaiveDate::from_ymd_opt(*year as i32, *month as u32, *day as u32)
-            else {
+            let year = i32::try_from(*year).map_err(|_| "Invalid year")?;
+            let month = u32::try_from(*month).map_err(|_| "Invalid month")?;
+            let day = u32::try_from(*day).map_err(|_| "Invalid day")?;
+            let hour = u32::try_from(*hour).map_err(|_| "Invalid hour")?;
+            let minute = u32::try_from(*minute).map_err(|_| "Invalid minute")?;
+            let second = u32::try_from(*second).map_err(|_| "Invalid second")?;
+            let offset = i32::try_from(*offset).map_err(|_| "Invalid offset")?;
+
+            let Some(dt) = chrono::NaiveDate::from_ymd_opt(year, month, day) else {
                 return Err("Invalid date".to_string());
             };
-            let Some(dt_seconds) = dt.and_hms_opt(*hour as u32, *minute as u32, *second as u32)
-            else {
+            let Some(dt_seconds) = dt.and_hms_opt(hour, minute, second) else {
                 return Err("Invalid time".to_string());
             };
-            Ok(Node::Time(
-                dt_seconds.and_utc().timestamp(),
-                (*offset as i32) * 3600,
-            ))
+            Ok(Node::Time(dt_seconds.and_utc().timestamp(), offset * 3600))
         }
         _ => invalid_arguments!(
             "time",
