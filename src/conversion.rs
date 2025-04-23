@@ -117,7 +117,10 @@ pub fn fn_time_to_number(arguments: &[Node]) -> Result<Node, String> {
 pub fn fn_number_to_float(arguments: &[Node]) -> Result<Node, String> {
     if arguments.len() == 1 {
         if let Node::Number(n) = &arguments[0] {
-            return Ok(Node::Float(*n as f64));
+            let n = i32::try_from(*n)
+                .map_err(|_| "Invalid number for conversion to float".to_string())?;
+            let f = f64::from(n);
+            return Ok(Node::Float(f));
         }
     }
     Err("Invalid arguments for number->float".to_string())
