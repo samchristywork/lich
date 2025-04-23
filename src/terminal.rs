@@ -1,16 +1,23 @@
 use crate::node::Node;
 use std::io::Write;
 
+fn flush() -> Result<(), String> {
+    if let Err(e) = std::io::stdout().flush() {
+        return Err(format!("Failed to flush stdout: {e}"));
+    }
+    Ok(())
+}
+
 pub fn fn_clear(_: &[Node]) -> Result<Node, String> {
     print!(r"[2J[1;1H");
-    std::io::stdout().flush().unwrap();
+    flush()?;
 
     Ok(Node::Bool(true))
 }
 
 pub fn fn_alternate_screen(_: &[Node]) -> Result<Node, String> {
     print!(r"[?1049h");
-    std::io::stdout().flush().unwrap();
+    flush()?;
 
     std::thread::sleep(std::time::Duration::from_secs(1));
     println!("Displaying on Alternate Screen");
@@ -21,7 +28,7 @@ pub fn fn_alternate_screen(_: &[Node]) -> Result<Node, String> {
 
 pub fn fn_normal_screen(_: &[Node]) -> Result<Node, String> {
     print!(r"[?1049l");
-    std::io::stdout().flush().unwrap();
+    flush()?;
 
     Ok(Node::Bool(true))
 }
