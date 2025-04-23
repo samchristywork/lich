@@ -35,16 +35,24 @@ impl std::fmt::Display for Environment {
     }
 }
 
+impl Default for Environment {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Environment {
+    #[must_use]
     pub fn new() -> Self {
-        Environment {
+        Self {
             parent: None,
             variables: std::collections::HashMap::new(),
         }
     }
 
-    pub fn from_parent(parent: Environment) -> Self {
-        Environment {
+    #[must_use]
+    pub fn from_parent(parent: Self) -> Self {
+        Self {
             parent: Some(Box::new(parent)),
             variables: std::collections::HashMap::new(),
         }
