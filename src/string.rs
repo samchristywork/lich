@@ -1,6 +1,18 @@
 use crate::invalid_arguments;
 use crate::node::Node;
 
+macro_rules! all_list {
+    ($args:expr) => {
+        $args.iter().all(|arg| matches!(arg, Node::List(_)))
+    };
+}
+
+macro_rules! all_text {
+    ($args:expr) => {
+        $args.iter().all(|arg| matches!(arg, Node::Text(_)))
+    };
+}
+
 //- (test "concat" (concat (quote (1 2)) (quote (3 4))) (quote (1 2 3 4)))
 //- (test "concat" (concat "Foo" "Bar") "FooBar")
 //- (test "concat" (concat (quote ()) (quote (1))) (quote (1)))
@@ -9,24 +21,38 @@ use crate::node::Node;
 pub fn fn_concat(arguments: &[Node]) -> Result<Node, String> {
     match arguments {
         [Node::List(_), ..] => {
+            if !all_list!(arguments) {
+                return Err(format!(
+                    "Arguments to `concat` must all be of the same type.\nGot: {arguments:?}"
+                ));
+            }
             let mut result = vec![];
             for arg in arguments {
                 if let Node::List(l) = arg {
                     result.extend_from_slice(l);
                 } else {
-                    panic!("Oh no...");
+                    return Err(format!(
+                        "Arguments to `concat` must all be of the same type.\nGot: {arguments:?}"
+                    ));
                 }
             }
 
             Ok(Node::List(result))
         }
         [Node::Text(_), ..] => {
+            if !all_text!(arguments) {
+                return Err(format!(
+                    "Arguments to `concat` must all be of the same type.\nGot: {arguments:?}"
+                ));
+            }
             let mut result = String::new();
             for arg in arguments {
                 if let Node::Text(s) = arg {
-                    result = result + s;
+                    result.push_str(s);
                 } else {
-                    panic!("Oh no...");
+                    return Err(format!(
+                        "Arguments to `concat` must all be of the same type.\nGot: {arguments:?}"
+                    ));
                 }
             }
 

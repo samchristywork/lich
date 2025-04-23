@@ -110,7 +110,7 @@ fn eval_undefine(rest: &[Node], env: &mut Environment) -> Result<Node, String> {
     }
 }
 
-fn eval_is_defined(rest: &[Node], env: &mut Environment) -> Result<Node, String> {
+fn eval_is_defined(rest: &[Node], env: &Environment) -> Result<Node, String> {
     if rest.len() == 1 {
         let variable = &rest[0];
         let is_defined = env.lookup(variable).is_some();
@@ -367,7 +367,10 @@ fn eval_time_ms(rest: &[Node], env: &mut Environment) -> Result<Node, String> {
         eval(&rest[0], env)?;
         let duration = start.elapsed();
         let result = duration.as_millis();
-        return Ok(Node::Number(result as i64));
+        let Ok(n) = result.try_into() else {
+            return Err("Time duration too large".to_string());
+        };
+        return Ok(Node::Number(n));
     }
     Err("Invalid arguments for time-ms".to_string())
 }
