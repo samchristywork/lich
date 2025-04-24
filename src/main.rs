@@ -187,6 +187,7 @@ fn create_environment(env: &mut Environment) {
     env.add_function("abs", arithmetic::fn_abs);
     env.add_function("pow", arithmetic::fn_pow);
     env.add_function("negate", arithmetic::fn_negate);
+    env.add_function("sqrt", arithmetic::fn_sqrt);
 
     // Comparison
     env.add_function("=", compare::fn_eq);

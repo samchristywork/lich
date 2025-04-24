@@ -136,3 +136,15 @@ pub fn fn_negate(arguments: &[Node]) -> Result<Node, String> {
         _ => invalid_arguments!("negate", arguments, ["[Number(num)]"]),
     }
 }
+
+pub fn fn_sqrt(arguments: &[Node]) -> Result<Node, String> {
+    match arguments {
+        [Node::Float(num)] => {
+            if *num < 0.0 {
+                return Err("Cannot take square root of a negative number".to_string());
+            }
+            Ok(Node::Float(num.sqrt()))
+        }
+        _ => invalid_arguments!("sqrt", arguments, ["[Float(num)]"]),
+    }
+}
