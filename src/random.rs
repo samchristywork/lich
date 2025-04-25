@@ -105,3 +105,10 @@ pub fn fn_random_boolean(arguments: &[Node]) -> Result<Node, String> {
         _ => invalid_arguments!("random-boolean", arguments, ["[]"]),
     }
 }
+
+pub fn fn_random_float(arguments: &[Node]) -> Result<Node, String> {
+    match arguments {
+        [] => Ok(Node::Float(rand::random())),
+        _ => invalid_arguments!("random-float", arguments, ["[]"]),
+    }
+}

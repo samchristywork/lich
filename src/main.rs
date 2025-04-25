@@ -242,6 +242,7 @@ fn create_environment(env: &mut Environment) {
     env.add_function("random-string", random::fn_random_string);
     env.add_function("random-choice", random::fn_random_choice);
     env.add_function("random-boolean", random::fn_random_boolean);
+    env.add_function("random-float", random::fn_random_float);
 
     // Regex
     env.add_function("regex", regex::fn_regex);
