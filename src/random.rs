@@ -68,3 +68,20 @@ pub fn fn_random_letter(arguments: &[Node]) -> Result<Node, String> {
         _ => invalid_arguments!("random-letter", arguments, ["[]", "[Number(length)]"]),
     }
 }
+
+pub fn fn_random_string(arguments: &[Node]) -> Result<Node, String> {
+    let letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    match arguments {
+        [Node::Number(length)] => {
+            if *length < 0 {
+                return Err("Length cannot be negative".to_string());
+            }
+            let length = *length;
+            let random_string: String = (0..length)
+                .map(|_| letters.chars().choose(&mut rand::thread_rng()).unwrap())
+                .collect();
+            Ok(Node::Text(random_string))
+        }
+        _ => invalid_arguments!("random-string", arguments, ["[Number(length)]"]),
+    }
+}

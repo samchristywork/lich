@@ -239,6 +239,7 @@ fn create_environment(env: &mut Environment) {
     // Random
     env.add_function("random-number", random::fn_random_number);
     env.add_function("random-letter", random::fn_random_letter);
+    env.add_function("random-string", random::fn_random_string);
 
     // Regex
     env.add_function("regex", regex::fn_regex);
