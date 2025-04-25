@@ -85,3 +85,16 @@ pub fn fn_random_string(arguments: &[Node]) -> Result<Node, String> {
         _ => invalid_arguments!("random-string", arguments, ["[Number(length)]"]),
     }
 }
+
+pub fn fn_random_choice(arguments: &[Node]) -> Result<Node, String> {
+    match arguments {
+        [Node::List(list)] => {
+            if list.is_empty() {
+                return Err("Cannot choose from an empty list".to_string());
+            }
+            let random_index = rand::rng().random_range(0..list.len());
+            Ok(list[random_index].clone())
+        }
+        _ => invalid_arguments!("random-choice", arguments, ["[List(list)]"]),
+    }
+}
