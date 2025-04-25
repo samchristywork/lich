@@ -1,6 +1,7 @@
 use crate::invalid_arguments;
 use crate::node::Node;
 use rand::Rng;
+use rand::prelude::IteratorRandom;
 
 pub fn fn_random_number(arguments: &[Node]) -> Result<Node, String> {
     match arguments {
@@ -51,5 +52,19 @@ pub fn fn_random_number(arguments: &[Node]) -> Result<Node, String> {
                 "[Float(min), Float(max)]"
             ]
         ),
+    }
+}
+
+pub fn fn_random_letter(arguments: &[Node]) -> Result<Node, String> {
+    let letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    match arguments {
+        [] => Ok(Node::Text(
+            letters
+                .chars()
+                .choose(&mut rand::thread_rng())
+                .unwrap()
+                .to_string(),
+        )),
+        _ => invalid_arguments!("random-letter", arguments, ["[]", "[Number(length)]"]),
     }
 }
