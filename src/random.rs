@@ -98,3 +98,10 @@ pub fn fn_random_choice(arguments: &[Node]) -> Result<Node, String> {
         _ => invalid_arguments!("random-choice", arguments, ["[List(list)]"]),
     }
 }
+
+pub fn fn_random_boolean(arguments: &[Node]) -> Result<Node, String> {
+    match arguments {
+        [] => Ok(Node::Bool(rand::random())),
+        _ => invalid_arguments!("random-boolean", arguments, ["[]"]),
+    }
+}
